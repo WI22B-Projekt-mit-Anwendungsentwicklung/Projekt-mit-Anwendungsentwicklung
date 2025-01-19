@@ -26,4 +26,4 @@ jobs:
         with:
           context: .
           push: true
-          tags: ghcr.io/WI22B-Projekt-mit-Anwendungsentwicklung/windy-seasel:latest
+          tags: ghcr.io/WI22B-Projekt-mit-Anwendungsentwicklung/windy-wseasel:latest
