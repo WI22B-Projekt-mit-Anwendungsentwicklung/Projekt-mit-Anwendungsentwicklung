@@ -24,6 +24,7 @@ jobs:
         id: docker_build
         uses: docker/build-push-action@v6
         with:
-          context: .
+          context: ./flask_docker
           push: true
+          file: ./flask_docker/Dockerfile
           tags: ghcr.io/wi22b-projekt-mit-anwendungsentwicklung/windy-weasel:latest
