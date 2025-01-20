@@ -3,7 +3,7 @@ services:
     build: ./flask/
     command: sh -c "python3 ./view.py"
     depends_on:
-      mysql:
+      database:
         condition: service_healthy
     restart: on-failure
 
