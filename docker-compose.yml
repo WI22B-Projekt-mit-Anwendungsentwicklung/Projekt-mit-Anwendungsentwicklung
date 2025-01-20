@@ -1,8 +1,8 @@
 services:
   flask:
-    build: ./flask/
+    build: ./app/
     container_name: windy-weasel
-    command: sh -c "python3 ./view.py"
+    command: sh -c "python3 ./app.py"
     ports:
       - "8000:8000"
     depends_on:
