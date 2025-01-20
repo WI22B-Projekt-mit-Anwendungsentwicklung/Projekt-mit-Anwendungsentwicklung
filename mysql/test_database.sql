@@ -1,8 +1,12 @@
 CREATE DATABASE IF NOT EXISTS db;
 use db;
 
-CREATE TABLE Station (
-    id VARCHAR(50) PRIMARY KEY,      -- Eindeutige ID der Station, max. Länge 50 Zeichen
-    latitude FLOAT NOT NULL,         -- Geografische Breite, erforderlich
-    longitude FLOAT NOT NULL         -- Geografische Länge, erforderlich
+CREATE TABLE students(
+    StudentID int not null AUTO_INCREMENT,
+    FirstName varchar(100) NOT NULL,
+    Surname varchar(100) NOT NULL,
+    PRIMARY KEY (StudentID)
 );
+
+INSERT INTO students(FirstName, Surname)
+VALUES ("John", "Andersen"), ("Emma", "Smith");
