@@ -1,6 +1,6 @@
-name: Build Docker Image and push to GHCR
+name: Build Docker Images and push to GHCR
 
-# Trigger deployment only on push to master branch
+# Trigger deployment only on push to main branch
 on:
   push:
     branches:
@@ -8,29 +8,35 @@ on:
 
 jobs:
   deploy:
-    name: Build Docker Image and push to GHCR
+    name: Build Docker Images and push to GHCR
     runs-on: ubuntu-latest
 
-
     steps:
+      # Checkout repository
       - name: Checkout the files
         uses: actions/checkout@v4
+
+      # Log in to GitHub Container Registry
       - name: Log in to the Container registry
         uses: docker/login-action@v3
         with:
           registry: https://ghcr.io
           username: ${{ github.actor }}
           password: ${{ secrets.PAT }}
+
+      # Build and push Flask Docker image
       - name: Build Flask Docker image and push
-        id: docker_build
+        id: docker_build_flask
         uses: docker/build-push-action@v6
         with:
           context: ./Flask
           push: true
           file: ./Flask/Dockerfile
           tags: ghcr.io/wi22b-projekt-mit-anwendungsentwicklung/windy-weasel:latest
+
+      # Build and push Database Docker image
       - name: Build Database Docker image and push
-        id: docker_build
+        id: docker_build_database
         uses: docker/build-push-action@v6
         with:
           context: ./Database
