@@ -11,6 +11,7 @@ jobs:
     name: Build Docker Image and push to GHCR
     runs-on: ubuntu-latest
 
+
     steps:
       - name: Checkout the files
         uses: actions/checkout@v4
