@@ -24,14 +24,14 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.PAT }}
 
-      # Build and push Flask Docker image
-      - name: Build Flask Docker image and push
+      # Build and push App Docker image
+      - name: Build App Docker image and push
         id: docker_build_flask
         uses: docker/build-push-action@v6
         with:
-          context: ./Flask
+          context: ./App
           push: true
-          file: ./Flask/Dockerfile
+          file: ./App/Dockerfile
           tags: ghcr.io/wi22b-projekt-mit-anwendungsentwicklung/windy-weasel:latest
 
       # Build and push Database Docker image
