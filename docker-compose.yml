@@ -1,7 +1,10 @@
 services:
   flask:
     build: ./flask/
+    container_name: windy-weasel
     command: sh -c "python3 ./view.py"
+    ports:
+      - "8000:8000"
     depends_on:
       database:
         condition: service_healthy
@@ -9,6 +12,7 @@ services:
 
   database:
     build: ./database/
+    container_name: gusty-gorilla
     restart: always
     environment:
       MYSQL_DATABASE: 'db'
