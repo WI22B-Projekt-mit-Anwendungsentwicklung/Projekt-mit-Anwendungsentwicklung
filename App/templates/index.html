@@ -8,8 +8,11 @@
     <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
 </head>
 <body>
-    <h1>Welcome to My Flask App</h1>
-    <p>This is a demo page with Flask.</p>
+    <input type="text" id="userInput" placeholder="Gib etwas ein...">
+    <button id="submitButton">Senden</button>
+
+    <!-- Feedback -->
+    <p id="responseMessage"></p>
 
     <!-- JavaScript einbinden -->
     <script src="{{ url_for('static', filename='js/script.js') }}"></script>
