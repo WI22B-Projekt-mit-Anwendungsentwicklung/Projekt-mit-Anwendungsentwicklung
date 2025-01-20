@@ -20,11 +20,19 @@ jobs:
           registry: https://ghcr.io
           username: ${{ github.actor }}
           password: ${{ secrets.PAT }}
-      - name: Build Docker image and push
+      - name: Build Flask Docker image and push
         id: docker_build
         uses: docker/build-push-action@v6
         with:
-          context: ./flask_docker
+          context: ./Flask
           push: true
-          file: ./flask_docker/Dockerfile
+          file: ./Flask/Dockerfile
           tags: ghcr.io/wi22b-projekt-mit-anwendungsentwicklung/windy-weasel:latest
+      - name: Build Database Docker image and push
+        id: docker_build
+        uses: docker/build-push-action@v6
+        with:
+          context: ./Database
+          push: true
+          file: ./Database/Dockerfile
+          tags: ghcr.io/wi22b-projekt-mit-anwendungsentwicklung/gusty-gorilla:latest

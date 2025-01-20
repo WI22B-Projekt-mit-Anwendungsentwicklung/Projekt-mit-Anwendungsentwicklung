@@ -1,0 +1,22 @@
+services:
+  flask:
+    build: ./flask/
+    command: sh -c "python3 ./view.py"
+    depends_on:
+      mysql:
+        condition: service_healthy
+    restart: on-failure
+
+  database:
+    build: ./database/
+    restart: always
+    environment:
+      MYSQL_DATABASE: 'db'
+      MYSQL_ROOT_PASSWORD: 'root'
+    ports:
+      - '3306:3306'
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "root", "--password=root"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
