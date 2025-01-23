@@ -1,5 +1,155 @@
-h1 {
-  font-weight: bold;
-  color: #ff0000;
+body {
+  margin: 0;
+  font-family: Arial, sans-serif;
+  background-color: #f9f9f9;
+  color: #333;
+}
+
+header {
+  height: 60px;
+  padding: 10px;
+  margin-bottom: 40px;
+
+  box-shadow: rgba(50, 50, 93, 0.25) 0px 13px 27px -5px, rgba(0, 0, 0, 0.3) 0px 8px 16px -8px;
+  background-color: #fafafa;
+  color: #007BFF;
   font-size: 32px;
+  font-weight: bold;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* Oberer Container (Map + Formular) */
+.container {
+  margin: 0 auto;
+  width: 100%;
+  height: 100%;
+}
+
+.main-content {
+  display: flex;
+  border-radius: 10px;
+  overflow: hidden;
+  box-shadow: rgba(60, 64, 67, 0.3) 0px 1px 2px 0px, rgba(60, 64, 67, 0.15) 0px 2px 6px 2px;
+  align-items: stretch;
+  margin: 20px;
+}
+
+/* Logo */
+.logo {
+  width: auto;
+  height: 100px;
+}
+
+/* Flex Form Latitude/Longitude */
+.flex-form {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 20px;
+}
+
+/* Karten-Bereich */
+.map {
+  flex: 2;
+  min-height: 500px;
+  border: none;
+  background-color: #e8ecef;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.map span {
+  color: #666;
+  font-size: 18px;
+  font-style: italic;
+}
+
+/* Formular-Bereich */
+.form-container {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  padding: 20px;
+  background-color: #ffffff;
+}
+.form-content {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+}
+
+.form-container label {
+  font-size: 14px;
+  color: #666;
+  font-weight: bold;
+}
+
+.form-container input,
+.form-container button {
+  padding: 10px;
+  border: 1px solid #ccc;
+  border-radius: 20px;
+  font-size: 16px;
+  outline: none;
+}
+
+.form-container input:focus {
+  border-color: #007BFF;
+  box-shadow: 0 0 5px rgba(0, 123, 255, 0.5);
+}
+.form-container input::placeholder {
+  color: #aaa;
+}
+
+/* Button mit Abstand nach oben */
+.form-container button {
+  background-color: #007BFF;
+  color: white;
+  border: none;
+  cursor: pointer;
+  font-weight: bold;
+  transition: background-color 0.3s ease;
+  margin-top: 20px;
+}
+.form-container button:hover {
+  background-color: #0056b3;
+}
+
+/* Slider etwas nÃ¤her an "Radius:" bringen */
+.slider {
+  width: 80%;
+  margin-top: 5px;
+  margin-bottom: 0;
+}
+
+.stations-container {
+  width: 100%;
+  display: flex;
+}
+
+/* Unterer Container: Weather Stations */
+.stations-list {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  flex-direction: column;
+  width: 100%;
+  padding: 20px;
+  margin: 20px;
+
+  border-radius: 10px;
+  box-shadow: rgba(60, 64, 67, 0.3) 0px 1px 2px 0px, rgba(60, 64, 67, 0.15) 0px 2px 6px 2px;
+}
+.stations-list h3 {
+  color: #333;
+}
+.stations-list p {
+  color: #666;
+  font-size: 14px;
 }

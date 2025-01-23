@@ -8,13 +8,235 @@
     <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
 </head>
 <body>
-    <input type="text" id="userInput" placeholder="Gib etwas ein...">
-    <button id="submitButton">Senden</button>
+  <header>
+    <img src="{{ url_for('static', filename='WXplore.png') }}" alt="Lgog" class="logo">
+  </header>
 
-    <!-- Feedback -->
-    <p id="responseMessage"></p>
+  <div class="container">
+    <div class="main-content">
+      <!-- Karte -->
+      <div class="map" id="map">
+        <span>Loading Map...</span>
+      </div>
 
-    <!-- JavaScript einbinden -->
-    <script src="{{ url_for('static', filename='js/script.js') }}"></script>
+      <!-- Formular -->
+      <div class="form-container">
+        <div class="form-content">
+          <div class="flex-form">
+            <label for="latitude">
+              Latitude
+            </label>
+            <input
+              type="number"
+              id="latitude"
+              name="latitude"
+              placeholder="Latitude"
+            />
+
+            <label for="longitude">
+              Longitude
+            </label>
+            <input
+              type="number"
+              id="longitude"
+              name="longitude"
+              placeholder="Longitude"
+            />
+          </div>
+
+          <label for="radius">
+            Radius (max 100 km):
+          </label>
+          <div style="display: flex; align-items: center; gap: 10px;">
+            <input
+              type="number"
+              id="radiusInput"
+              min="1"
+              max="100"
+              step="1"
+              value="100"
+              oninput="updateRadiusFromInput()"
+            />
+            <input
+              type="range"
+              id="radius"
+              min="1"
+              max="100"
+              step="1"
+              value="100"
+              oninput="updateRadiusFromRange()"
+            />
+            <span id="radiusValue">100 km</span>
+          </div>
+
+          <!-- Jahr Zeitraum -->
+          <label for="yearRange">
+            Year Range:
+          </label>
+          <div style="display: flex; align-items: center; gap: 10px;">
+            <input
+              type="number"
+              id="yearStart"
+              name="yearStart"
+              min="1920"
+              max="2025"
+              step="1"
+              placeholder="Start Year"
+            />
+            <span>to</span>
+            <input
+              type="number"
+              id="yearEnd"
+              name="yearEnd"
+              min="1920"
+              max="2025"
+              step="1"
+              placeholder="End Year"
+            />
+            <span id="yearRangeDuration">Zeitraum: - Jahre</span>
+          </div>
+
+          <label for="stations">
+            Number of Weather Stations
+          </label>
+          <input
+            type="number"
+            id="stations"
+            name="stations"
+            placeholder="Number of Weather Stations"
+          />
+
+        </div>
+        <button type="button" onclick="addMarker()">Search Weather Stations</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="stations-container">
+    <div class="stations-list">
+      <h3>Weather Stations</h3>
+      <p>No weather stations found. Please perform a search.</p>
+    </div>
+  </div>
+
+  <!-- script.js -->
+  <script>
+    let map;
+    let currentMarker = null;   // letzter Marker
+    let currentCircle = null;   // aktueller Kreis
+
+    function initMap() {
+      map = new google.maps.Map(document.getElementById("map"), {
+        zoom: 2,
+        center: { lat: 0, lng: 0 },
+        mapTypeId: google.maps.MapTypeId.TERRAIN,
+        disableDefaultUI: true
+      });
+    }
+
+    const radiusInput = document.getElementById('radiusInput');
+    const radiusRange = document.getElementById('radius');
+    const radiusValue = document.getElementById('radiusValue');
+    const yearStartInput = document.getElementById('yearStart');
+    const yearEndInput = document.getElementById('yearEnd');
+    const yearRangeDuration = document.getElementById('yearRangeDuration');
+
+    function updateRadiusFromRange() {
+      const value = radiusRange.value;
+      radiusInput.value = value;
+      radiusValue.textContent = `${value} km`;
+    }
+
+    function updateRadiusFromInput() {
+      const value = radiusInput.value;
+      radiusRange.value = value;
+      radiusValue.textContent = `${value} km`;
+    }
+
+    radiusRange.addEventListener('input', updateRadiusFromRange);
+    radiusInput.addEventListener('input', updateRadiusFromInput);
+
+    function updateYearRangeDuration() {
+      const yearStart = parseInt(yearStartInput.value);
+      const yearEnd = parseInt(yearEndInput.value);
+
+      if (!isNaN(yearStart) && !isNaN(yearEnd) && yearEnd >= yearStart) {
+        const duration = yearEnd - yearStart;
+        yearRangeDuration.textContent = `Zeitraum: ${duration} Jahre`;
+      } else {
+        yearRangeDuration.textContent = "Zeitraum: - Jahre";
+      }
+    }
+
+    yearStartInput.addEventListener('input', updateYearRangeDuration);
+    yearEndInput.addEventListener('input', updateYearRangeDuration);
+
+    // Marker hinzufügen / aktualisieren
+    function addMarker() {
+      // Entferne alten Marker und alten Kreis (falls vorhanden)
+      if (currentMarker) {
+        currentMarker.setMap(null);
+      }
+      if (currentCircle) {
+        currentCircle.setMap(null);
+      }
+
+      const latitude = parseFloat(document.getElementById("latitude").value);
+      const longitude = parseFloat(document.getElementById("longitude").value);
+
+      if (isNaN(latitude) || isNaN(longitude)) {
+        alert("Please enter valid Latitude and Longitude values.");
+        return;
+      }
+
+      // Wert des Sliders (in km) in Meter umrechnen
+      const radiusKm = parseFloat(radiusRange.value);
+      const radiusInMeters = radiusKm * 1000;
+
+      const position = { lat: latitude, lng: longitude };
+
+      // Neuen Marker setzen
+      currentMarker = new google.maps.Marker({
+        position: position,
+        map: map,
+        title: "Weather Station"
+      });
+
+      // Karte zentrieren und heranzoomen
+      map.setCenter(position);
+      map.setZoom(10);
+
+      // Kreis zeichnen
+      currentCircle = new google.maps.Circle({
+        strokeColor: "#FF0000",
+        strokeOpacity: 0.8,
+        strokeWeight: 2,
+        fillColor: "#FF0000",
+        fillOpacity: 0.35,
+        map: map,
+        center: position,
+        radius: radiusInMeters
+      });
+
+      // Zeitraum auslesen
+      const yearStart = parseInt(document.getElementById("yearStart").value);
+      const yearEnd = parseInt(document.getElementById("yearEnd").value);
+
+      if (!yearStart || !yearEnd || yearStart > yearEnd) {
+        alert("Please enter a valid year range.");
+        return;
+      }
+
+      console.log(`Fetching weather data for years ${yearStart} to ${yearEnd}...`);
+    }
+  </script>
+
+  <!-- Google Maps API mit Callback auf initMap -->
+  <script
+    async
+    defer
+    src="https://maps.googleapis.com/maps/api/js?key=AIzaSyBmgMa1SuYTka5RbQBGvSlgi02QCRcv3_k&callback=initMap"
+  ></script>
 </body>
 </html>
+

@@ -1,34 +1,66 @@
-document.getElementById("submitButton").addEventListener("click", async () => {
-    // Nutzerinput abrufen
-    const userInput = document.getElementById("userInput").value;
+let map;
+let currentMarker = null;   // letzter Marker
+let currentCircle = null;   // aktueller Kreis
 
-    // Request an die API senden
-    if (userInput) {
-        try {
-            const response = await fetch("/user-input", {
-                method: "POST",
-                headers: {
-                    "Content-Type": "application/json"
-                },
-                body: JSON.stringify({ input: userInput })
-            });
+function initMap() {
+  map = new google.maps.Map(document.getElementById("map"), {
+    zoom: 2,
+    center: { lat: 0, lng: 0 },
+    mapTypeId: google.maps.MapTypeId.TERRAIN,
+    disableDefaultUI: true
+  });
+}
 
-            if (response.ok) {
-                const data = await response.json();
-                console.log("Serverantwort:", data);
+// Marker hinzufügen / aktualisieren
+function addMarker() {
+  // Entferne alten Marker und alten Kreis (falls vorhanden)
+  if (currentMarker) {
+    currentMarker.setMap(null);
+  }
+  if (currentCircle) {
+    currentCircle.setMap(null);
+  }
 
-                // Erfolgsmeldung anzeigen
-                document.getElementById("responseMessage").textContent =
-                    "Daten erfolgreich gesendet: " + data.data.input;
-            } else {
-                // Fehler anzeigen
-                document.getElementById("responseMessage").textContent =
-                    "Fehler beim Senden der Daten.";
-            }
-        } catch (error) {
-            console.error("Fehler:", error);
-        }
-    } else {
-        alert("Bitte gib einen Wert ein!");
-    }
-});
+  const latitude = parseFloat(document.getElementById("latitude").value);
+  const longitude = parseFloat(document.getElementById("longitude").value);
+
+  if (isNaN(latitude) || isNaN(longitude)) {
+    alert("Please enter valid Latitude and Longitude values.");
+    return;
+  }
+
+  // Wert des Sliders (in km) in Meter umrechnen
+  const radiusKm = parseFloat(document.getElementById("radius").value);
+  const radiusInMeters = radiusKm * 1000;
+
+  const position = { lat: latitude, lng: longitude };
+
+  // Neuen Marker setzen
+  currentMarker = new google.maps.Marker({
+    position: position,
+    map: map,
+    title: "Weather Station"
+  });
+
+  // Karte zentrieren und heranzoomen
+  map.setCenter(position);
+  map.setZoom(10);
+
+  // Kreis zeichnen
+  currentCircle = new google.maps.Circle({
+    strokeColor: "#FF0000",
+    strokeOpacity: 0.8,
+    strokeWeight: 2,
+    fillColor: "#FF0000",
+    fillOpacity: 0.35,
+    map: map,
+    center: position,
+    radius: radiusInMeters
+  });
+}
+
+// Aktualisiert die Anzeige neben dem Slider
+function updateRadiusValue() {
+  const radius = document.getElementById("radius").value;
+  document.getElementById("radiusValue").textContent = `${radius} km`;
+}
