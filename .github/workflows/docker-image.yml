@@ -39,7 +39,7 @@ jobs:
         id: docker_build_database
         uses: docker/build-push-action@v6
         with:
-          context: ./Database
+          context: ./MySQL
           push: true
-          file: ./Database/Dockerfile
+          file: ./MySQL/Dockerfile
           tags: ghcr.io/wi22b-projekt-mit-anwendungsentwicklung/gusty-gorilla:latest
