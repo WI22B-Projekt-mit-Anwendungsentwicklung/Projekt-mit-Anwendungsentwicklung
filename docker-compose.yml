@@ -6,12 +6,12 @@ services:
     ports:
       - "8000:8000"
     depends_on:
-      database:
+      mysql:
         condition: service_healthy
     restart: on-failure
 
-  database:
-    build: ./database/
+  mysql:
+    build: ./mysql/
     container_name: gusty-gorilla
     restart: always
     environment:
