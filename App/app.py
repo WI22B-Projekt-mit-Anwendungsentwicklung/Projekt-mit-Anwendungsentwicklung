@@ -1,7 +1,8 @@
 from flask import Flask, render_template, request, jsonify
 from flask_restful import Resource, Api
 import mysql.connector
-
+import station
+import datapoint as dp
 app = Flask(__name__)
 
 @app.route('/')
@@ -12,11 +13,28 @@ connection = mysql.connector.connect(
     user='root', password='root', host='mysql', port="3306", database='db')
 print("DB connected")
 
+stations = []
 cursor = connection.cursor()
-cursor.execute("SELECT * FROM students")
-students = cursor.fetchall()
+cursor.execute("SELECT * FROM Station;")
+inhalt_station = cursor.fetchall()
+if not inhalt_station:
+    print("Tabelle leer")
+    stations = station.load_stations_from_url("https://www1.ncdc.noaa.gov/pub/data/ghcn/daily/ghcnd-inventory.txt")
+    for station in stations:
+        cursor.execute("INSERT INTO Station (id, latitude, longitude, first_tmax, latest_tmax, first_tmin, latest_tmin) "
+                     f"VALUES ('{station.id}', {station.latitude}, {station.longitude}, {station.first_measure_tmax},"
+                       f" {station.last_measure_tmax}, {station.first_measure_tmin}, {station.last_measure_tmin});")
+    connection.commit()
+else:
+    print("Tabelle bereits gefüllt")
+
+
+
+cursor.execute("SELECT * FROM Station LIMIT 10;")
+rows = cursor.fetchall()
 connection.close()
-print(students)
+
+print(rows)
 
 if __name__ == "__main__":
     app.run(debug=True, host='0.0.0.0', port=8000)

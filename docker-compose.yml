@@ -17,6 +17,8 @@ services:
     environment:
       MYSQL_DATABASE: 'db'
       MYSQL_ROOT_PASSWORD: 'root'
+    volumes:
+      - mysql_data:/var/lib/mysql
     ports:
       - '3306:3306'
     healthcheck:
@@ -24,3 +26,6 @@ services:
       interval: 10s
       timeout: 5s
       retries: 3
+volumes:
+  mysql_data:
+    driver: local
