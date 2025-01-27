@@ -62,11 +62,7 @@ header {
   justify-content: center;
 }
 
-.map span {
-  color: #666;
-  font-size: 18px;
-  font-style: italic;
-}
+#map { height: 180px; }
 
 /* Formular-Bereich */
 .form-container {
