@@ -28,6 +28,16 @@ if not inhalt_station:
 else:
     print("Tabelle bereits gefüllt")
 
+cursor.execute("SELECT * FROM Datapoint;")
+inhalt_datapoint = cursor.fetchall()
+if not inhalt_datapoint and inhalt_station:
+    print("Tabelle Datapoint leer")
+    for station in inhalt_station:
+        datapoints = dp.download_and_create_datapoints(station[0])
+        for datapoint in datapoints:
+            cursor.execute(f"INSERT INTO Datapoint (station_id, year, month, tmax, tmin) VALUES ('{datapoint.station}', {str(datapoint.date)[:4]}, {str(datapoint.date)[-2:]},{datapoint.tmax},{datapoint.tmin});")
+else:
+    print("Tabelle bereits gefüllt")
 
 
 cursor.execute("SELECT * FROM Station LIMIT 10;")
