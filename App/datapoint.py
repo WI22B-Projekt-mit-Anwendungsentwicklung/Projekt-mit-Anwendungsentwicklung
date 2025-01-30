@@ -68,6 +68,7 @@ def download_and_create_datapoints(station_id: str):
     :param station_id: Die Station-ID, um die Datei herunterzuladen (z. B. 'ACW00011604').
     """
     url = f"https://www1.ncdc.noaa.gov/pub/data/ghcn/daily/all/{station_id}.dly"
+    # "/Users/lukasschick/Documents/ghcnd_all/ghcnd_all/{station_id}.dly"
     response = requests.get(url)
     list_datapoints = []
 
@@ -111,6 +112,48 @@ def download_and_create_datapoints(station_id: str):
 
     return list_datapoints
 
+import os
+
+def download_and_create_datapoints_local(station_id: str):
+    """
+    Liest die Datei einer gegebenen Station-ID aus dem lokalen Verzeichnis,
+    extrahiert die relevanten Zeilen und erstellt DataPoint-Objekte.
+
+    :param station_id: Die Station-ID der Datei (z. B. 'ACW00011604').
+    """
+    file_path = f"/data/ghcnd_all/{station_id}.dly"
+    list_datapoints = []
+
+    if os.path.exists(file_path):
+        # Listen für Tmax und Tmin
+        tmax_data = 0
+        tmin_data = 0
+
+        # Datei auslesen
+        with open(file_path, 'r') as file:
+            for line in file:
+                line_17 = line[17:21]
+                if len(line) > 21 and (line_17 == "TMAX" or line_17 == "TMIN"):
+                    # Extrahiere Datum (z.B. Jahr + Monat)
+                    current_date = int(line[11:17])  # Jahr + Monat (YYYYMM)
+
+                    # Wenn es eine TMAX Zeile ist, hole die Temperaturdaten
+                    if line_17 == "TMAX":
+                        tmax_data = extract_average_value(line)
+                    elif line_17 == "TMIN":
+                        tmin_data = extract_average_value(line)
+
+                    if tmin_data != 0 and tmax_data != 0:
+                        data_point = DataPoint(date=current_date, tmax=tmax_data, tmin=tmin_data,
+                                               station=station_id)
+                        list_datapoints.append(data_point)
+                        tmax_data = 0
+                        tmin_data = 0
+    else:
+        print(f"Fehler: Datei {file_path} nicht gefunden.")
+
+    return list_datapoints
+
 
 if __name__ == "__main__":
-    print(download_and_create_datapoints("AGE00147711"))
+    print(download_and_create_datapoints_local("AGE00147711"))

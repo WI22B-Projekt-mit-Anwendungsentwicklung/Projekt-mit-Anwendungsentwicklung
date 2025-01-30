@@ -2,6 +2,8 @@ services:
   flask:
     build: ./app/
     container_name: windy-weasel
+    volumes:
+      - /Users/lukasschick/Documents/ghcnd_all:/data
     command: sh -c "python3 ./app.py"
     ports:
       - "8000:8000"
