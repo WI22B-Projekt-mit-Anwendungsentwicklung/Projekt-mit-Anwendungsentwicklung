@@ -115,10 +115,13 @@ def find_stations_within_radius(stations, latitude, longitude, radius):
     """
     result = []
     for station in stations:
-        distance = haversine(latitude, longitude, station.latitude, station.longitude)
+        distance = haversine(latitude, longitude, station[1], station[2])
         if distance <= radius:
             result.append((station, distance))
-    return result
+
+    sorted_result = sorted(result, key=lambda x: x[1])
+
+    return sorted_result
 
 if __name__ == "__main__":
     load_stations_from_url("https://www1.ncdc.noaa.gov/pub/data/ghcn/daily/ghcnd-inventory.txt")

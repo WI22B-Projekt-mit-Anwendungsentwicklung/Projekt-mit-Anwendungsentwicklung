@@ -68,7 +68,6 @@ def download_and_create_datapoints(station_id: str):
     :param station_id: Die Station-ID, um die Datei herunterzuladen (z. B. 'ACW00011604').
     """
     url = f"https://www1.ncdc.noaa.gov/pub/data/ghcn/daily/all/{station_id}.dly"
-    # "/Users/lukasschick/Documents/ghcnd_all/ghcnd_all/{station_id}.dly"
     response = requests.get(url)
     list_datapoints = []
 
