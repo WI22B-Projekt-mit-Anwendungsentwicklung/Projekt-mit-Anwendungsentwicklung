@@ -45,7 +45,7 @@ def get_stations_in_radius(latitude, longitude, radius, first_year, last_year):
     stations_in_radius = st.find_stations_within_radius(stations, latitude, longitude, radius)
     return stations_in_radius  # (('GMM00010591', 50.933, 14.217), 66.85437995060985)
 
-def get_datapoints_for_station(station_id):
+def get_datapoints_for_station(station_id, first_year, last_year):
     # 1. Jahresdurchschnitt Tmin
     # 2. Jahresdurchschnitt Tmax
     # 3. Frühling Tmin
@@ -60,18 +60,18 @@ def get_datapoints_for_station(station_id):
     ten_datasets = []
 
     # 1. Jährlicher Mittelwert der Temperaturminima
-    cursor.execute(f"SELECT year, AVG(tmin) AS avg_tmin FROM Datapoint "
-                   f"WHERE station_id = '{station_id}' GROUP BY year ORDER BY year;")
-    yearly_mean_tmin = cursor.fetchall()
-    ten_datasets.append(yearly_mean_tmin)
+    cursor.execute(f"SELECT year, AVG(tmin) FROM Datapoint "
+                   f"WHERE station_id = '{station_id}' AND year BETWEEN {first_year} AND {last_year} "
+                   f"GROUP BY year ORDER BY year;")
+    ten_datasets.append(cursor.fetchall())
 
     # 2. Jährlicher Mittelwert der Temperaturmaxima
-    cursor.execute(f"SELECT year, AVG(tmax) AS avg_tmax FROM Datapoint "
-                   f"WHERE station_id = '{station_id}' GROUP BY year ORDER BY year;")
-    yearly_mean_tmax = cursor.fetchall()
-    ten_datasets.append(yearly_mean_tmax)
+    cursor.execute(f"SELECT year, AVG(tmax) FROM Datapoint "
+                   f"WHERE station_id = '{station_id}' AND year BETWEEN {first_year} AND {last_year} "
+                   f"GROUP BY year ORDER BY year;")
+    ten_datasets.append(cursor.fetchall())
 
-    # 3. Jährliche Mittelwerte der Temperaturminima für jede Jahreszeit
+    # 3-8. Jährliche Mittelwerte für Tmin und Tmax in den Jahreszeiten Frühling, Sommer, Herbst
     seasons = {
         "spring": (3, 5),
         "summer": (6, 8),
@@ -79,35 +79,33 @@ def get_datapoints_for_station(station_id):
     }
 
     for season, (start_month, end_month) in seasons.items():
-        cursor.execute(f"SELECT year, AVG(tmin) AS avg_tmin_{season} FROM Datapoint "
+        cursor.execute(f"SELECT year, AVG(tmin) FROM Datapoint "
                        f"WHERE station_id = '{station_id}' AND month BETWEEN {start_month} AND {end_month} "
+                       f"AND year BETWEEN {first_year} AND {last_year} "
                        f"GROUP BY year ORDER BY year;")
-        season_tmin = cursor.fetchall()
-        ten_datasets.append(season_tmin)
+        ten_datasets.append(cursor.fetchall())
 
-    # 4. Jährlicher Mittelwert der Temperaturminima im Winter (Dez-Vorjahr + Jan+Feb)
-    cursor.execute(f"SELECT CASE WHEN month = 12 THEN year + 1 ELSE year END AS winter_year, "
-                   f"AVG(tmin) AS avg_tmin_winter FROM Datapoint "
-                   f"WHERE station_id = '{station_id}' AND (month = 12 OR month BETWEEN 1 AND 2) "
-                   f"GROUP BY winter_year ORDER BY winter_year;")
-    season_tmin_winter = cursor.fetchall()
-    ten_datasets.append(season_tmin_winter)
-
-    # 5. Jährliche Mittelwerte der Temperaturmaxima für jede Jahreszeit
-    for season, (start_month, end_month) in seasons.items():
-        cursor.execute(f"SELECT year, AVG(tmax) AS avg_tmax_{season} FROM Datapoint "
+        cursor.execute(f"SELECT year, AVG(tmax) FROM Datapoint "
                        f"WHERE station_id = '{station_id}' AND month BETWEEN {start_month} AND {end_month} "
+                       f"AND year BETWEEN {first_year} AND {last_year} "
                        f"GROUP BY year ORDER BY year;")
-        season_tmax = cursor.fetchall()
-        ten_datasets.append(season_tmax)
+        ten_datasets.append(cursor.fetchall())
 
-    # 6. Jährlicher Mittelwert der Temperaturmaxima im Winter (Dez-Vorjahr + Jan+Feb)
+    # 9. Jährlicher Mittelwert der Temperaturminima im Winter (Dez-Vorjahr + Jan+Feb)
     cursor.execute(f"SELECT CASE WHEN month = 12 THEN year + 1 ELSE year END AS winter_year, "
-                   f"AVG(tmax) AS avg_tmax_winter FROM Datapoint "
+                   f"AVG(tmin) FROM Datapoint "
                    f"WHERE station_id = '{station_id}' AND (month = 12 OR month BETWEEN 1 AND 2) "
+                   f"AND (CASE WHEN month = 12 THEN year + 1 ELSE year END) BETWEEN {first_year} AND {last_year} "
                    f"GROUP BY winter_year ORDER BY winter_year;")
-    season_tmax_winter = cursor.fetchall()
-    ten_datasets.append(season_tmax_winter)
+    ten_datasets.append(cursor.fetchall())
+
+    # 10. Jährlicher Mittelwert der Temperaturmaxima im Winter (Dez-Vorjahr + Jan+Feb)
+    cursor.execute(f"SELECT CASE WHEN month = 12 THEN year + 1 ELSE year END AS winter_year, "
+                   f"AVG(tmax) FROM Datapoint "
+                   f"WHERE station_id = '{station_id}' AND (month = 12 OR month BETWEEN 1 AND 2) "
+                   f"AND (CASE WHEN month = 12 THEN year + 1 ELSE year END) BETWEEN {first_year} AND {last_year} "
+                   f"GROUP BY winter_year ORDER BY winter_year;")
+    ten_datasets.append(cursor.fetchall())
 
     return ten_datasets
 
@@ -125,7 +123,7 @@ cursor = connection.cursor()
 save_data_to_db()
 
 print(get_stations_in_radius(51.1, 13.3, 100, 1950, 2020))
-a = get_datapoints_for_station("AE000041196")
+a = get_datapoints_for_station("AE000041196", 1990, 2000)
 
 b = 1
 for i in a:
