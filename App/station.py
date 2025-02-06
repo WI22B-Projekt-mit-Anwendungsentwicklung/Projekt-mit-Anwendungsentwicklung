@@ -103,10 +103,11 @@ def load_stations_from_url(url_inventory: str):
 
 
 # Stationen im Radius finden
-def find_stations_within_radius(stations, latitude, longitude, radius):
+def find_stations_within_radius(stations, latitude, longitude, radius, max_stations=0):
     """
     Findet alle Stationen innerhalb eines bestimmten Radius um eine gegebene Koordinate.
 
+    :param max_stations: Maximale Anzahl der Stationen.
     :param stations: Liste der Stationen.
     :param latitude: Geografische Breite des Mittelpunkts (float).
     :param longitude: Geografische Länge des Mittelpunkts (float).
@@ -120,6 +121,9 @@ def find_stations_within_radius(stations, latitude, longitude, radius):
             result.append((station, distance))
 
     sorted_result = sorted(result, key=lambda x: x[1])
+
+    if max_stations > 0:
+        sorted_result = sorted_result[:max_stations]
 
     return sorted_result
 

@@ -81,7 +81,7 @@ let map;
 
       // Karte zentrieren und heranzoomen
       map.setCenter(position);
-      map.setZoom(10);
+      map.setZoom(5);
 
       // Kreis zeichnen
       currentCircle = new google.maps.Circle({
