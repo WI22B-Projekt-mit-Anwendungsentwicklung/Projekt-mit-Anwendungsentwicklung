@@ -2,7 +2,7 @@ services:
   flask:
     build: ./app/
     container_name: windy-weasel
-    volumes:
+#    volumes:
 #      - /Users/lukasschick/Documents/ghcnd_all:/data
 #      - /path/to/local/ghcn-file:/data
     command: sh -c "python3 ./app.py"
