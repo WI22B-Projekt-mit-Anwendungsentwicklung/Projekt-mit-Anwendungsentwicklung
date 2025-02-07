@@ -12,8 +12,10 @@ async function sendData() {
         radius: parseInt(radius),
         yearStart: parseInt(yearStart),
         yearEnd: parseInt(yearEnd),
-        stations: parseInt(stations)
+        // Wenn stations nicht angegeben ist, setze es auf null oder einen Standardwert (z.B. 0)
+        stations: stations ? parseInt(stations) : 0  // 'stations' wird entweder als Zahl oder als null übergeben
     };
+
 
     try {
         const response = await fetch("http://localhost:8000/submit", {

@@ -2,7 +2,11 @@ from flask import Flask, render_template, request, jsonify
 import mysql.connector
 import station as st
 import datapoint as dp
+from flask_cors import CORS
+from mysql.connector import pooling
 app = Flask(__name__)
+CORS(app)
+
 
 def save_data_to_db():
     cursor.execute("SELECT * FROM Station;")
@@ -113,11 +117,6 @@ def get_datapoints_for_station(station_name, first_year, last_year):
     ten_datasets.append(cursor.fetchall())
 
     return ten_datasets
-
-from flask_cors import CORS
-from mysql.connector import pooling
-
-CORS(app)
 
 dbconfig = {
     "user": "root",
