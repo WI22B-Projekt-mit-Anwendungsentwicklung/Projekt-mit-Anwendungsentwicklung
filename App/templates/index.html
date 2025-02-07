@@ -107,7 +107,7 @@
           />
 
         </div>
-        <button type="button" onclick="addMarker()">Search Weather Stations</button>
+        <button type="button" onclick="sendData()">Search Weather Stations</button> <!-- addMarker() -->
       </div>
     </div>
   </div>
@@ -115,12 +115,15 @@
   <div class="stations-container">
     <div class="stations-list">
       <h3>Weather Stations</h3>
+      <p id="responseMessage"></p>
       <p>No weather stations found. Please perform a search.</p>
     </div>
   </div>
 
   <!-- map.js -->
   <script src="{{url_for('static', filename='js/map.js')}}"></script>
+  <!-- script.js -->
+  <script src="{{url_for('static', filename='js/script.js')}}"></script>
   <!-- Google Maps API mit Callback auf initMap -->
   <script async defer src="https://maps.googleapis.com/maps/api/js?key=AIzaSyBmgMa1SuYTka5RbQBGvSlgi02QCRcv3_k&callback=initMap"></script>
 </body>

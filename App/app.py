@@ -37,10 +37,10 @@ def get_stations():
 
 def get_stations_in_radius(latitude, longitude, radius, first_year, last_year, max_stations):
     cursor.execute(f"SELECT station_name, latitude, longitude FROM Station "
-                   f"WHERE first_tmin >= {first_year} "
-                   f"AND latest_tmin <= {last_year} "
-                   f"AND first_tmax >= {first_year} "
-                   f"AND latest_tmax <= {last_year} ;")
+                   f"WHERE first_tmin <= {first_year} "
+                   f"AND latest_tmin >= {last_year} "
+                   f"AND first_tmax <= {first_year} "
+                   f"AND latest_tmax >= {last_year} ;")
     stations = cursor.fetchall()
 
     stations_in_radius = st.find_stations_within_radius(stations, latitude, longitude, radius, max_stations)
@@ -114,21 +114,69 @@ def get_datapoints_for_station(station_name, first_year, last_year):
 
     return ten_datasets
 
+from flask_cors import CORS
+from mysql.connector import pooling
+
+CORS(app)
+
+dbconfig = {
+    "user": "root",
+    "password": "root",
+    "host": "mysql",
+    "port": "3306",
+    "database": "db"
+}
+
+# Initialisiere den Verbindungspool
+connection_pool = pooling.MySQLConnectionPool(
+    pool_name="mypool",
+    pool_size=10,
+    **dbconfig
+)
+connection = connection_pool.get_connection()
+
+cursor = connection.cursor()
+# -----
 @app.route('/')
 def home():
     return render_template('index.html')
 
+@app.route('/submit', methods=['POST'])
+def receive_data():
+    data = request.json  # Holt die JSON-Daten aus der Anfrage
+    latitude = data.get('latitude')
+    longitude = data.get('longitude')
+    radius = data.get('radius')
+    year_start = data.get('yearStart')
+    year_end = data.get('yearEnd')
+    stations = data.get('stations')
 
-connection = mysql.connector.connect(
-    user='root', password='root', host='mysql', port="3306", database='db')
-print("DB connected")
+    # Verbindung zur Datenbank
+    try:
+        connection = mysql.connector.connect(
+            user='root', password='root', host='mysql', port="3306", database='db'
+        )
+        cursor = connection.cursor()
 
-cursor = connection.cursor()
-# -----
+        # Stationsdaten abrufen
+        stations_in_radius = get_stations_in_radius(latitude, longitude, radius, year_start, year_end, stations)
+
+        # Füge die Ergebnisse zur Antwort hinzu
+        data["stationsInRadius"] = stations_in_radius
+
+    except mysql.connector.Error as err:
+        return jsonify({"error": f"Fehler bei der Datenbankverbindung: {err}"}), 500
+    finally:
+        # Schließen der Verbindung und des Cursors
+        cursor.close()
+        connection.close()
+
+    return jsonify({"message": f"{data} erfolgreich empfangen!"}), 200
+
 
 save_data_to_db()
 
-#print(get_stations_in_radius(51.1, 13.3, 100, 1950, 2020))
+print(get_stations_in_radius(51.1, 13.3, 100, 1950, 2020, 20))
 #a = get_datapoints_for_station("AE000041196", 1990, 2000)
 
 
