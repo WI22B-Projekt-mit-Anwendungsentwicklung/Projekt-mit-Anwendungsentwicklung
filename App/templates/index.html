@@ -106,8 +106,17 @@
             placeholder="Number of Weather Stations"
           />
 
+          <input
+            type="text"
+            id="stationName"
+            name="stationName"
+            placeholder="Name of the Stations"
+          />
+          <p>AE000041196</p>
+
         </div>
-        <button type="button" onclick="sendData()">Search Weather Stations</button> <!-- addMarker() -->
+        <button type="button" onclick="sendStationData()">Search Weather Stations</button><!-- addMarker() -->
+        <button type="button" onclick="sendWeatherData()">Get Station data</button>
       </div>
     </div>
   </div>
@@ -115,7 +124,8 @@
   <div class="stations-container">
     <div class="stations-list">
       <h3>Weather Stations</h3>
-      <p id="responseMessage"></p>
+      <p id="responseMessageStation"></p>
+      <p id="responseMessageStationData"></p>
       <p>No weather stations found. Please perform a search.</p>
     </div>
   </div>

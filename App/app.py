@@ -50,6 +50,7 @@ def get_stations_in_radius(latitude, longitude, radius, first_year, last_year, m
     stations_in_radius = st.find_stations_within_radius(stations, latitude, longitude, radius, max_stations)
     return stations_in_radius  # (('GMM00010591', 50.933, 14.217), 66.85437995060985)
 
+
 def get_datapoints_for_station(station_name, first_year, last_year):
     # 1. Jahresdurchschnitt Tmin
     # 2. Jahresdurchschnitt Tmax
@@ -64,20 +65,60 @@ def get_datapoints_for_station(station_name, first_year, last_year):
 
     ten_datasets = []
 
-    cursor.execute(f"SELECT SID FROM Datapoint WHERE station_name = '{station_name}';")
+    cursor.execute(f"SELECT SID FROM Station WHERE station_name = '{station_name}';")
     sid = cursor.fetchall()
-    station_id = sid[0]
+    station_id = sid[0][0]
 
-    # 1. Jährlicher Mittelwert der Temperaturminima
-    cursor.execute(f"SELECT year, AVG(tmin) FROM Datapoint "
-                   f"WHERE SID = {station_id} AND year BETWEEN {first_year} AND {last_year} "
-                   f"GROUP BY year ORDER BY year;")
+    cursor.execute(f"""
+        SELECT year,
+               SUM(tmin * days_in_month) / SUM(days_in_month)
+        FROM (
+            SELECT year,
+                   month,
+                   AVG(tmin) AS tmin,
+                   CASE
+                       WHEN month = 2 THEN
+                           CASE
+                               WHEN (year % 4 = 0 AND (year % 100 != 0 OR year % 400 = 0)) THEN 29
+                               ELSE 28
+                           END
+                       WHEN month IN (4, 6, 9, 11) THEN 30
+                       ELSE 31
+                   END AS days_in_month
+            FROM Datapoint
+            WHERE SID = {station_id}
+              AND year BETWEEN {first_year} AND {last_year}
+            GROUP BY year, month
+        ) AS subquery
+        GROUP BY year
+        ORDER BY year;
+    """)
     ten_datasets.append(cursor.fetchall())
 
-    # 2. Jährlicher Mittelwert der Temperaturmaxima
-    cursor.execute(f"SELECT year, AVG(tmax) FROM Datapoint "
-                   f"WHERE SID = {station_id} AND year BETWEEN {first_year} AND {last_year} "
-                   f"GROUP BY year ORDER BY year;")
+    cursor.execute(f"""
+        SELECT year,
+               SUM(tmax * days_in_month) / SUM(days_in_month)
+        FROM (
+            SELECT year,
+                   month,
+                   AVG(tmax) AS tmax,
+                   CASE
+                       WHEN month = 2 THEN
+                           CASE
+                               WHEN (year % 4 = 0 AND (year % 100 != 0 OR year % 400 = 0)) THEN 29
+                               ELSE 28
+                           END
+                       WHEN month IN (4, 6, 9, 11) THEN 30
+                       ELSE 31
+                   END AS days_in_month
+            FROM Datapoint
+            WHERE SID = {station_id}
+              AND year BETWEEN {first_year} AND {last_year}
+            GROUP BY year, month
+        ) AS subquery
+        GROUP BY year
+        ORDER BY year;
+    """)
     ten_datasets.append(cursor.fetchall())
 
     # 3-8. Jährliche Mittelwerte für Tmin und Tmax in den Jahreszeiten Frühling, Sommer, Herbst
@@ -88,32 +129,118 @@ def get_datapoints_for_station(station_name, first_year, last_year):
     }
 
     for season, (start_month, end_month) in seasons.items():
-        cursor.execute(f"SELECT year, AVG(tmin) FROM Datapoint "
-                       f"WHERE SID = {station_id} AND month BETWEEN {start_month} AND {end_month} "
-                       f"AND year BETWEEN {first_year} AND {last_year} "
-                       f"GROUP BY year ORDER BY year;")
+        # Tmin
+        cursor.execute(f"""
+            SELECT year,
+                   SUM(tmin * days_in_month) / SUM(days_in_month)
+            FROM (
+                SELECT year,
+                       month,
+                       AVG(tmin) AS tmin,
+                       CASE
+                           WHEN month = 2 THEN
+                               CASE
+                                   WHEN (year % 4 = 0 AND (year % 100 != 0 OR year % 400 = 0)) THEN 29
+                                   ELSE 28
+                               END
+                           WHEN month IN (4, 6, 9, 11) THEN 30
+                           ELSE 31
+                       END AS days_in_month
+                FROM Datapoint
+                WHERE SID = {station_id}
+                  AND month BETWEEN {start_month} AND {end_month}
+                  AND year BETWEEN {first_year} AND {last_year}
+                GROUP BY year, month
+            ) AS subquery
+            GROUP BY year
+            ORDER BY year;
+        """)
         ten_datasets.append(cursor.fetchall())
 
-        cursor.execute(f"SELECT year, AVG(tmax) FROM Datapoint "
-                       f"WHERE SID = {station_id} AND month BETWEEN {start_month} AND {end_month} "
-                       f"AND year BETWEEN {first_year} AND {last_year} "
-                       f"GROUP BY year ORDER BY year;")
+        # Tmax
+        cursor.execute(f"""
+            SELECT year,
+                   SUM(tmax * days_in_month) / SUM(days_in_month)
+            FROM (
+                SELECT year,
+                       month,
+                       AVG(tmax) AS tmax,
+                       CASE
+                           WHEN month = 2 THEN
+                               CASE
+                                   WHEN (year % 4 = 0 AND (year % 100 != 0 OR year % 400 = 0)) THEN 29
+                                   ELSE 28
+                               END
+                           WHEN month IN (4, 6, 9, 11) THEN 30
+                           ELSE 31
+                       END AS days_in_month
+                FROM Datapoint
+                WHERE SID = {station_id}
+                  AND month BETWEEN {start_month} AND {end_month}
+                  AND year BETWEEN {first_year} AND {last_year}
+                GROUP BY year, month
+            ) AS subquery
+            GROUP BY year
+            ORDER BY year;
+        """)
         ten_datasets.append(cursor.fetchall())
 
     # 9. Jährlicher Mittelwert der Temperaturminima im Winter (Dez-Vorjahr + Jan+Feb)
-    cursor.execute(f"SELECT CASE WHEN month = 12 THEN year + 1 ELSE year END AS winter_year, "
-                   f"AVG(tmin) FROM Datapoint "
-                   f"WHERE SID = {station_id} AND (month = 12 OR month BETWEEN 1 AND 2) "
-                   f"AND (CASE WHEN month = 12 THEN year + 1 ELSE year END) BETWEEN {first_year} AND {last_year} "
-                   f"GROUP BY winter_year ORDER BY winter_year;")
+    cursor.execute(f"""
+        SELECT winter_year,
+               SUM(tmin * days_in_month) / SUM(days_in_month)
+        FROM (
+            SELECT CASE WHEN month = 12 THEN year + 1 ELSE year END AS winter_year,
+                   month,
+                   AVG(tmin) AS tmin,
+                   CASE
+                       WHEN month = 2 THEN
+                           CASE
+                               WHEN (year % 4 = 0 AND (year % 100 != 0 OR year % 400 = 0)) THEN 29
+                               ELSE 28
+                           END
+                       WHEN month = 12 THEN 31
+                       WHEN month = 1 THEN 31
+                       ELSE 30
+                   END AS days_in_month
+            FROM Datapoint
+            WHERE SID = {station_id}
+              AND (month = 12 OR month BETWEEN 1 AND 2)
+              AND (CASE WHEN month = 12 THEN year + 1 ELSE year END) BETWEEN {first_year} AND {last_year}
+            GROUP BY year, month
+        ) AS subquery
+        GROUP BY winter_year
+        ORDER BY winter_year;
+    """)
     ten_datasets.append(cursor.fetchall())
 
     # 10. Jährlicher Mittelwert der Temperaturmaxima im Winter (Dez-Vorjahr + Jan+Feb)
-    cursor.execute(f"SELECT CASE WHEN month = 12 THEN year + 1 ELSE year END AS winter_year, "
-                   f"AVG(tmax) FROM Datapoint "
-                   f"WHERE SID = {station_id} AND (month = 12 OR month BETWEEN 1 AND 2) "
-                   f"AND (CASE WHEN month = 12 THEN year + 1 ELSE year END) BETWEEN {first_year} AND {last_year} "
-                   f"GROUP BY winter_year ORDER BY winter_year;")
+    cursor.execute(f"""
+        SELECT winter_year,
+               SUM(tmax * days_in_month) / SUM(days_in_month)
+        FROM (
+            SELECT CASE WHEN month = 12 THEN year + 1 ELSE year END AS winter_year,
+                   month,
+                   AVG(tmax) AS tmax,
+                   CASE
+                       WHEN month = 2 THEN
+                           CASE
+                               WHEN (year % 4 = 0 AND (year % 100 != 0 OR year % 400 = 0)) THEN 29
+                               ELSE 28
+                           END
+                       WHEN month = 12 THEN 31
+                       WHEN month = 1 THEN 31
+                       ELSE 30
+                   END AS days_in_month
+            FROM Datapoint
+            WHERE SID = {station_id}
+              AND (month = 12 OR month BETWEEN 1 AND 2)
+              AND (CASE WHEN month = 12 THEN year + 1 ELSE year END) BETWEEN {first_year} AND {last_year}
+            GROUP BY year, month
+        ) AS subquery
+        GROUP BY winter_year
+        ORDER BY winter_year;
+    """)
     ten_datasets.append(cursor.fetchall())
 
     return ten_datasets
@@ -172,13 +299,45 @@ def receive_data():
 
     return jsonify({"message": f"{data} erfolgreich empfangen!"}), 200
 
+@app.route('/get_weather_data', methods=['POST'])
+def get_weather_data():
+    data = request.json  # Holt die JSON-Daten aus der Anfrage
+    station_name = data.get('stationName')
+    year_start = data.get('yearStart')
+    year_end = data.get('yearEnd')
+
+    if not station_name or not year_start or not year_end:
+        return jsonify({"message": "Fehlende Parameter"}), 400
+
+    try:
+        connection = mysql.connector.connect(
+            user='root', password='root', host='mysql', port="3306", database='db'
+        )
+        cursor = connection.cursor()
+
+        # Abfrage der Wetterdaten
+
+        weather_data = get_datapoints_for_station(station_name, year_start, year_end)
+
+        data["weatherData"] = weather_data
+
+
+    except Exception as err:
+        return jsonify({"message": f"Fehler: {str(err)}"}), 500
+    finally:
+        # Schließen der Verbindung und des Cursors
+        cursor.close()
+        connection.close()
+
+    return jsonify({"message": f"{data} erfolgreich empfangen!"}), 200
 
 save_data_to_db()
 
 print(get_stations_in_radius(51.1, 13.3, 100, 1950, 2020, 20))
-#a = get_datapoints_for_station("AE000041196", 1990, 2000)
-
-
+a = get_datapoints_for_station("AE000041196", 1998, 2000)
+print(a)
+# [(1998, 20.573333342870075), (1999, 20.442583163579304), (2000, 20.360416650772095)], [(1998, 35.80766646067301), (1999, 35.89291683832804), (2000, 35.23483339945475)],
+# [(1998, 20.62168768268742) , (1999, 20.457019009002266), (2000, 20.37627047398051)] , [(1998, 35.86117240174176), (1999, 35.91752619286106), (2000, 35.26121863901941)],
 
 cursor.execute("SELECT * FROM Datapoint LIMIT 5;")
 result = cursor.fetchall()

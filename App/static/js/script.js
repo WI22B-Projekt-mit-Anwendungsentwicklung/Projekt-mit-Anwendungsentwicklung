@@ -1,4 +1,4 @@
-async function sendData() {
+async function sendStationData() {
     const latitude = document.getElementById("latitude").value;
     const longitude = document.getElementById("longitude").value;
     const radius = document.getElementById("radius").value;
@@ -25,9 +25,37 @@ async function sendData() {
         });
 
         const result = await response.json();
-        document.getElementById("responseMessage").textContent = result.message;
+        document.getElementById("responseMessageStation").textContent = result.message;
         console.log("Serverantwort:", result);
     } catch (error) {
         console.error("Fehler beim Senden der Daten:", error);
     }
 }
+
+async function sendWeatherData() {
+    const stationName = document.getElementById("stationName").value;
+    const yearStart = document.getElementById("yearStart").value;
+    const yearEnd = document.getElementById("yearEnd").value;
+
+    // Erstellen des Datenobjekts mit den Eingabewerten
+    const data = {
+        stationName: stationName,  // Stationsname als String
+        yearStart: parseInt(yearStart),
+        yearEnd: parseInt(yearEnd)
+    };
+
+    try {
+        const response = await fetch("http://localhost:8000/get_weather_data", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(data)
+        });
+
+        const result = await response.json();
+        document.getElementById("responseMessageStationData").textContent = result.message;
+        console.log("Serverantwort:", result);
+    } catch (error) {
+        console.error("Fehler beim Senden der Daten:", error);
+    }
+}
+
