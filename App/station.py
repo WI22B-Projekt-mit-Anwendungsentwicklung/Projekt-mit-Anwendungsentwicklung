@@ -1,6 +1,4 @@
-import csv
 import requests
-from math import radians, sin, cos, atan2, sqrt
 
 class Station:
     def __init__(self, id: str, latitude: float, longitude: float, last_measure_tmax: int = 0, first_measure_tmax: int = 0,
@@ -32,28 +30,6 @@ class Station:
                 f"measure tmax first/last={self.first_measure_tmax}/{self.last_measure_tmax},"
                 f"measure tmin first/last={self.first_measure_tmin}/{self.last_measure_tmin})")
 
-# Funktion zur Berechnung der Entfernung (Haversine-Formel)
-def haversine(lat1, lon1, lat2, lon2):
-    """
-    Berechnet die Entfernung zwischen zwei Punkten auf der Erde in Kilometern.
-
-    :param lat1: Breite des ersten Punkts (float).
-    :param lon1: Länge des ersten Punkts (float).
-    :param lat2: Breite des zweiten Punkts (float).
-    :param lon2: Länge des zweiten Punkts (float).
-    :return: Entfernung in Kilometern (float).
-    """
-    R = 6378.14  # Erdradius in Kilometern
-
-    # Koordinaten in Bogenmaß umrechnen
-    lat1, lon1, lat2, lon2 = map(radians, [lat1, lon1, lat2, lon2])
-
-    # Haversine-Formel
-    dlat = lat2 - lat1
-    dlon = lon2 - lon1
-    a = sin(dlat / 2)**2 + cos(lat1) * cos(lat2) * sin(dlon / 2)**2
-    c = 2 * atan2(sqrt(a), sqrt(1 - a))
-    return R * c
 
 def load_stations_from_url(url_inventory: str):
     """
@@ -101,31 +77,6 @@ def load_stations_from_url(url_inventory: str):
         print(f"Fehler beim Abrufen der Datei: HTTP {response.status_code}")
         return []
 
-
-# Stationen im Radius finden
-def find_stations_within_radius(stations, latitude, longitude, radius, max_stations=0):
-    """
-    Findet alle Stationen innerhalb eines bestimmten Radius um eine gegebene Koordinate.
-
-    :param max_stations: Maximale Anzahl der Stationen.
-    :param stations: Liste der Stationen.
-    :param latitude: Geografische Breite des Mittelpunkts (float).
-    :param longitude: Geografische Länge des Mittelpunkts (float).
-    :param radius: Radius in Kilometern (float).
-    :return: Liste der Stationen innerhalb des Radius.
-    """
-    result = []
-    for station in stations:
-        distance = haversine(latitude, longitude, station[1], station[2])
-        if distance <= radius:
-            result.append((station, distance))
-
-    sorted_result = sorted(result, key=lambda x: x[1])
-
-    if max_stations > 0:
-        sorted_result = sorted_result[:max_stations]
-
-    return sorted_result
 
 if __name__ == "__main__":
     load_stations_from_url("https://www1.ncdc.noaa.gov/pub/data/ghcn/daily/ghcnd-inventory.txt")

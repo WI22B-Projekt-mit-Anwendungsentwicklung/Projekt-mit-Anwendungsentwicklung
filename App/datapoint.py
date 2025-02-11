@@ -15,17 +15,6 @@ class DataPoint:
         self.tmin = tmin
         self.station = station  # Referenz einer Station
 
-    def validate_date(self, date: int):
-        """
-        Überprüft, ob das Datum korrekt ist (YYYYMM).
-
-        :param date: Datum im Format YYYYMM.
-        :return: True, wenn das Datum korrekt ist, ansonsten False.
-        """
-        year = date // 100
-        month = date % 100
-        return 1 <= month <= 12 and year > 0
-
     def __repr__(self):
         """
         Repräsentation des Datenpunkts als String.
@@ -110,8 +99,6 @@ def download_and_create_datapoints(station_id: str):
         print(f"Fehler beim Herunterladen: HTTP {response.status_code}")
 
     return list_datapoints
-
-import os
 
 def download_and_create_datapoints_local(station_id: str):
     """
