@@ -2,6 +2,7 @@ from flask import request, jsonify, render_template
 import data_services as ds
 
 def init_routes(app):
+
     @app.route('/')
     def home():
         return render_template('index.html')

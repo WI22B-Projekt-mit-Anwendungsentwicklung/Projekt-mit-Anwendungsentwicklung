@@ -2,12 +2,14 @@ import requests
 import os
 
 class DataPoint:
-    def __init__(self, date: int, tmax: float, tmin: float, station=None):
+    def __init__(self, date: int, tmax: float, tmin: float, station: str = None):
         """
-        Erstellt einen Datenpunkt mit Monat, Temperaturdaten und einer zugehörigen Station.
+        Erstellt einen Datenpunkt mit Datum, maximaler Temperatur, minimaler Temperatur und zugehöriger Stations-ID.
 
         :param date: Jahr+Monat im Format YYYYMM (z. B. 202401).
-        :param station: Die Station (Instanz der Klasse Station), der dieser Datenpunkt zugeordnet ist.
+        :param tmax: Die maximale Temperatur als Float.
+        :param tmin: Die minimale Temperatur als Float.
+        :param station: Die Stations-ID als String, der dieser Datenpunkt zugeordnet ist.
         """
 
         self.date = date
@@ -55,6 +57,7 @@ def download_and_create_datapoints(station_id: str):
     Lädt die Datei einer gegebenen Station-ID herunter, extrahiert die relevanten Zeilen und erstellt DataPoint-Objekte.
 
     :param station_id: Die Station-ID, um die Datei herunterzuladen (z. B. 'ACW00011604').
+    :return: Eine Liste von DataPoint-Objekten, die die extrahierten Temperaturen und das zugehörige Datum enthalten.
     """
     url = f"https://www1.ncdc.noaa.gov/pub/data/ghcn/daily/all/{station_id}.dly"
     response = requests.get(url)
@@ -106,6 +109,7 @@ def download_and_create_datapoints_local(station_id: str):
     extrahiert die relevanten Zeilen und erstellt DataPoint-Objekte.
 
     :param station_id: Die Station-ID der Datei (z. B. 'ACW00011604').
+    :return: Eine Liste von DataPoint-Objekten, die die extrahierten Temperaturen und das zugehörige Datum enthalten.
     """
     file_path = f"/data/ghcnd_all/{station_id}.dly"
     list_datapoints = []

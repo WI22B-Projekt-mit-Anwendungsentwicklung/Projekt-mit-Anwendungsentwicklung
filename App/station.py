@@ -6,11 +6,13 @@ class Station:
         """
         Erstellt eine Wetterstation.
 
-        :param id: Die eindeutige ID der Station (int).
-
+        :param id: Die eindeutige ID der Station (str).
         :param latitude: Die geografische Breite der Station (float).
         :param longitude: Die geografische Länge der Station (float).
-        :param data: Eine Liste der Daten, die für diese Station gespeichert wurden (z. B. Wetterdaten).
+        :param last_measure_tmax: Letztes Jahr der TMAX-Messung (int, optional).
+        :param first_measure_tmax: Erstes Jahr der TMAX-Messung (int, optional).
+        :param last_measure_tmin: Letztes Jahr der TMIN-Messung (int, optional).
+        :param first_measure_tmin: Erstes Jahr der TMIN-Messung (int, optional).
         """
         self.id = id
         self.latitude = latitude
@@ -46,7 +48,7 @@ def load_stations_from_url(url_inventory: str):
     print(f"Status-Code: {response.status_code}")
 
     if response.status_code == 200:
-        # Datei speichern
+
         content = response.text
 
         latest_station_id = ""
