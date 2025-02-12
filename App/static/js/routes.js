@@ -25,7 +25,6 @@ async function sendStationData() {
         });
 
         const result = await response.json();
-        document.getElementById("responseMessageStation").textContent = result.message;
         console.log("Serverantwort:", result);
     } catch (error) {
         console.error("Fehler beim Senden der Daten:", error);
@@ -52,7 +51,6 @@ async function sendWeatherData() {
         });
 
         const result = await response.json();
-        document.getElementById("responseMessageStationData").textContent = result.message;
         console.log("Serverantwort:", result);
     } catch (error) {
         console.error("Fehler beim Senden der Daten:", error);

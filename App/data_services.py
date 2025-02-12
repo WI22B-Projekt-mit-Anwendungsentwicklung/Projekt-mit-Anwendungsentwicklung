@@ -369,6 +369,7 @@ def get_datapoints_for_station(station_name, first_year, last_year):
                 """,
                 (station_id, first_year, last_year))
             ten_datasets.append(cursor.fetchall())
+
     finally:
         cursor.close()
         connection.close()

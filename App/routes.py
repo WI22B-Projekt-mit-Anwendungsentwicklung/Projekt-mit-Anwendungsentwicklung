@@ -20,7 +20,7 @@ def init_routes(app):
         stations_in_radius = ds.get_stations_in_radius(latitude, longitude, radius, year_start, year_end, stations)
         data["stationsInRadius"] = stations_in_radius
 
-        return jsonify({"message": f"{data["stationsInRadius"]} erfolgreich empfangen!"}), 200
+        return jsonify(data["stationsInRadius"]), 200
 
     @app.route('/get_weather_data', methods=['POST'])
     def get_weather_data():
@@ -35,4 +35,4 @@ def init_routes(app):
         weather_data = ds.get_datapoints_for_station(station_name, year_start, year_end)
         data["weatherData"] = weather_data
 
-        return jsonify({"message": f"{data["weatherData"]} erfolgreich empfangen!"}), 200
+        return jsonify(data["weatherData"]), 200
