@@ -1,7 +1,7 @@
 import requests
 
 class Station:
-    def __init__(self, id: str, latitude: float, longitude: float, last_measure_tmax: int = 0, first_measure_tmax: int = 0,
+    def __init__(self, id: str, name: str, latitude: float, longitude: float, last_measure_tmax: int = 0, first_measure_tmax: int = 0,
                  last_measure_tmin: int = 0, first_measure_tmin: int = 0):
         """
         Erstellt eine Wetterstation.
@@ -15,6 +15,7 @@ class Station:
         :param first_measure_tmin: Erstes Jahr der TMIN-Messung (int, optional).
         """
         self.id = id
+        self.name = name
         self.latitude = latitude
         self.longitude = longitude
         self.last_measure_tmax = last_measure_tmax
@@ -28,12 +29,12 @@ class Station:
 
         :return: String-Repräsentation der Station.
         """
-        return (f"Station(id={self.id}, latitude={self.latitude}, longitude={self.longitude}, "
+        return (f"ID={self.id}, Name={self.name} latitude={self.latitude}, longitude={self.longitude}, "
                 f"measure tmax first/last={self.first_measure_tmax}/{self.last_measure_tmax},"
                 f"measure tmin first/last={self.first_measure_tmin}/{self.last_measure_tmin})")
 
 
-def load_stations_from_url(url_inventory: str):
+def load_stations_from_url(url_inventory: str, url_stations: str):
     """
     Lädt die Stationsdaten von einer URL und erstellt eine Liste von Station-Objekten.
 
@@ -41,11 +42,30 @@ def load_stations_from_url(url_inventory: str):
     :return: Eine Liste von Station-Objekten.
     """
 
-    stations = []
+    print(f"Lade Inventory-Daten von {url_stations}...")
+    response = requests.get(url_stations)
+    print(f"Status-Code: {response.status_code}")
+
+    station_dict = {}
+
+    if response.status_code == 200:
+
+        content = response.text
+
+        for row in content.splitlines():
+            station_id = row[:11]
+            station_name = row[41:71].strip()
+            station_dict[station_id] = station_name
+    else:
+        print(f"Fehler beim Abrufen der Datei: HTTP {response.status_code}")
+
+
 
     print(f"Lade Inventory-Daten von {url_inventory}...")
     response = requests.get(url_inventory)
     print(f"Status-Code: {response.status_code}")
+
+    stations = []
 
     if response.status_code == 200:
 
@@ -53,7 +73,7 @@ def load_stations_from_url(url_inventory: str):
 
         latest_station_id = ""
 
-        station = Station(id="", latitude=0, longitude=0)
+        station = Station(id="", name="", latitude=0, longitude=0) # Wird erstellt, damit "station" Variable existiert.
         stations.append(station)
 
         for row in content.splitlines():
@@ -63,6 +83,7 @@ def load_stations_from_url(url_inventory: str):
                     stations.remove(station)
                 station = Station(
                     id=station_id,
+                    name=station_dict[station_id],
                     latitude=float(row[12:20]),
                     longitude=float(row[21:30])
                 )

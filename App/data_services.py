@@ -33,7 +33,7 @@ def find_stations_within_radius(stations, latitude, longitude, radius, max_stati
 
     result = []
     for station in stations:
-        distance = haversine(latitude, longitude, station[1], station[2])
+        distance = haversine(latitude, longitude, station[2], station[3])
         if distance <= radius:
             result.append((station, distance))
 
@@ -81,14 +81,16 @@ def save_data_to_db():
             cursor.execute("SELECT * FROM Station;")
             inhalt_station = cursor.fetchall()
             if not inhalt_station:
-                stations = st.load_stations_from_url("https://www1.ncdc.noaa.gov/pub/data/ghcn/daily/ghcnd-inventory.txt")
+                stations = st.load_stations_from_url(
+                    "https://www1.ncdc.noaa.gov/pub/data/ghcn/daily/ghcnd-inventory.txt",
+                    "https://www1.ncdc.noaa.gov/pub/data/ghcn/daily/ghcnd-stations.txt")
                 for station in stations:
                     cursor.execute(
                         """
-                        INSERT INTO Station (station_name, latitude, longitude, first_tmax, latest_tmax, first_tmin, latest_tmin)
-                        VALUES (%s, %s, %s, %s, %s, %s, %s);
+                        INSERT INTO Station (station_id, station_name, latitude, longitude, first_tmax, latest_tmax, first_tmin, latest_tmin)
+                        VALUES (%s,%s, %s, %s, %s, %s, %s, %s);
                         """,
-                        (station.id, station.latitude, station.longitude, station.first_measure_tmax,
+                        (station.id, station.name, station.latitude, station.longitude, station.first_measure_tmax,
                          station.last_measure_tmax, station.first_measure_tmin, station.last_measure_tmin))
                 connection.commit()
             else:
@@ -131,10 +133,9 @@ def get_stations_in_radius(latitude, longitude, radius, first_year, last_year, m
     connection = connection_pool.get_connection()
     try:
         with connection.cursor() as cursor:
-
             cursor.execute(
                 """
-                SELECT station_name, latitude, longitude 
+                SELECT station_id, station_name, latitude, longitude 
                 FROM Station 
                 WHERE first_tmin <= %s 
                   AND latest_tmin >= %s 
@@ -151,12 +152,12 @@ def get_stations_in_radius(latitude, longitude, radius, first_year, last_year, m
 
     return stations_in_radius  # (('GMM00010591', 50.933, 14.217), 66.85437995060985)
 
-def get_datapoints_for_station(station_name, first_year, last_year):
+def get_datapoints_for_station(station_id, first_year, last_year):
     """
     Ruft Datensätze zu Temperaturmittelwerten (Tmin und Tmax) einer Station ab,
     gruppiert nach Jahr und Jahreszeiten.
 
-    :param station_name: Name der Station.
+    :param station_id: Name der Station.
     :param first_year: Erstes Jahr des Zeitraums.
     :param last_year: Letztes Jahr des Zeitraums.
 
@@ -178,7 +179,7 @@ def get_datapoints_for_station(station_name, first_year, last_year):
 
             ten_datasets = []
 
-            cursor.execute("SELECT SID FROM Station WHERE station_name = %s;", (station_name,))
+            cursor.execute("SELECT SID FROM Station WHERE station_id = %s;", (station_id,))
             sid = cursor.fetchall()
             station_id = sid[0][0]
 

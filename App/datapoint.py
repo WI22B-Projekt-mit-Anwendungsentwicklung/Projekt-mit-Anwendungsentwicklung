@@ -23,8 +23,7 @@ class DataPoint:
 
         :return: String-Repräsentation des Datenpunkts.
         """
-        year = self.date // 100
-        month = self.date % 100
+
         station_name = self.station if self.station else "None"
         return f"DataPoint(date={self.date}, station='{station_name}, tmax={self.tmax}, tmin={self.tmin}')"
 
