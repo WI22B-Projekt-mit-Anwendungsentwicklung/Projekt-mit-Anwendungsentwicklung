@@ -23,17 +23,17 @@ def find_stations_within_radius(stations, latitude, longitude, radius, max_stati
     """
     Findet alle Stationen innerhalb eines bestimmten Radius um eine gegebene Koordinate.
 
-    :param max_stations: Maximale Anzahl der Stationen.
     :param stations: Liste der Stationen.
     :param latitude: Geografische Breite des Mittelpunkts (float).
     :param longitude: Geografische Länge des Mittelpunkts (float).
     :param radius: Radius in Kilometern (float).
+    :param max_stations: Maximale Anzahl der Stationen.
     :return: Liste der Stationen innerhalb des Radius.
     """
 
     result = []
     for station in stations:
-        distance = haversine(latitude, longitude, station[1], station[2])
+        distance = haversine(latitude, longitude, station[2], station[3])
         if distance <= radius:
             result.append((station, distance))
 
@@ -68,6 +68,12 @@ def haversine(lat1, lon1, lat2, lon2):
     return R * c
 
 def save_data_to_db():
+    """
+    Füllt die Tabellen "Station" und "Datapoint" in der Datenbank, falls sie leer sind,
+    indem Daten von einer externen URL geladen und eingefügt werden.
+
+    :return: Keine Rückgabe, führt Datenbankoperationen aus.
+    """
     connection = connection_pool.get_connection()
     try:
         with connection.cursor() as cursor:
@@ -75,12 +81,17 @@ def save_data_to_db():
             cursor.execute("SELECT * FROM Station;")
             inhalt_station = cursor.fetchall()
             if not inhalt_station:
-                stations = st.load_stations_from_url("https://www1.ncdc.noaa.gov/pub/data/ghcn/daily/ghcnd-inventory.txt")
+                stations = st.load_stations_from_url(
+                    "https://www1.ncdc.noaa.gov/pub/data/ghcn/daily/ghcnd-inventory.txt",
+                    "https://www1.ncdc.noaa.gov/pub/data/ghcn/daily/ghcnd-stations.txt")
                 for station in stations:
                     cursor.execute(
-                        "INSERT INTO Station (station_name, latitude, longitude, first_tmax, latest_tmax, first_tmin, latest_tmin) "
-                        f"VALUES ('{station.id}', {station.latitude}, {station.longitude}, {station.first_measure_tmax},"
-                        f" {station.last_measure_tmax}, {station.first_measure_tmin}, {station.last_measure_tmin});")
+                        """
+                        INSERT INTO Station (station_id, station_name, latitude, longitude, first_tmax, latest_tmax, first_tmin, latest_tmin)
+                        VALUES (%s,%s, %s, %s, %s, %s, %s, %s);
+                        """,
+                        (station.id, station.name, station.latitude, station.longitude, station.first_measure_tmax,
+                         station.last_measure_tmax, station.first_measure_tmin, station.last_measure_tmin))
                 connection.commit()
             else:
                 print("Station bereits gefüllt")
@@ -93,8 +104,11 @@ def save_data_to_db():
                     foreign_key = station[0]
                     for datapoint in datapoints:
                         cursor.execute(
-                            f"INSERT INTO Datapoint (SID, year, month, tmax, tmin) VALUES ('{foreign_key}',"
-                            f" {str(datapoint.date)[:4]}, {str(datapoint.date)[-2:]},{datapoint.tmax},{datapoint.tmin});")
+                            """
+                            INSERT INTO Datapoint (SID, year, month, tmax, tmin)
+                            VALUES (%s, %s, %s, %s, %s);
+                            """,
+                            (foreign_key, str(datapoint.date)[:4], str(datapoint.date)[-2:], datapoint.tmax, datapoint.tmin))
                 connection.commit()
             else:
                 print("Datapoint bereits gefüllt")
@@ -103,15 +117,32 @@ def save_data_to_db():
         connection.close()
 
 def get_stations_in_radius(latitude, longitude, radius, first_year, last_year, max_stations):
+    """
+    Ruft Stationen ab, die sich innerhalb eines bestimmten Radius um die angegebene Position befinden
+    und Tmin/Tmax-Bedingungen für den Zeitraum erfüllen.
+
+    :param latitude: Breitengrad der Suchposition.
+    :param longitude: Längengrad der Suchposition.
+    :param radius: Suchradius in Kilometern.
+    :param first_year: Erstes Jahr des gesuchten Zeitraums.
+    :param last_year: Letztes Jahr des gesuchten Zeitraums.
+    :param max_stations: Maximale Anzahl zurückzugebender Stationen.
+
+    :return: Liste von Stationen mit ihren Entfernungen im Radius (z. B. [(station, distance)]).
+    """
     connection = connection_pool.get_connection()
     try:
         with connection.cursor() as cursor:
-
-            cursor.execute(f"SELECT station_name, latitude, longitude FROM Station "
-                           f"WHERE first_tmin <= {first_year} "
-                           f"AND latest_tmin >= {last_year} "
-                           f"AND first_tmax <= {first_year} "
-                           f"AND latest_tmax >= {last_year} ;")
+            cursor.execute(
+                """
+                SELECT station_id, station_name, latitude, longitude 
+                FROM Station 
+                WHERE first_tmin <= %s 
+                  AND latest_tmin >= %s 
+                  AND first_tmax <= %s 
+                  AND latest_tmax >= %s;
+                """,
+                (first_year, last_year, first_year, last_year))
             stations = cursor.fetchall()
 
             stations_in_radius = find_stations_within_radius(stations, latitude, longitude, radius, max_stations)
@@ -121,29 +152,40 @@ def get_stations_in_radius(latitude, longitude, radius, first_year, last_year, m
 
     return stations_in_radius  # (('GMM00010591', 50.933, 14.217), 66.85437995060985)
 
-def get_datapoints_for_station(station_name, first_year, last_year):
+def get_datapoints_for_station(station_id, first_year, last_year):
+    """
+    Ruft Datensätze zu Temperaturmittelwerten (Tmin und Tmax) einer Station ab,
+    gruppiert nach Jahr und Jahreszeiten.
+
+    :param station_id: Name der Station.
+    :param first_year: Erstes Jahr des Zeitraums.
+    :param last_year: Letztes Jahr des Zeitraums.
+
+    :return: Liste mit 10 Datensätzen:
+             1. Jahresdurchschnitt Tmin
+             2. Jahresdurchschnitt Tmax
+             3. Frühling Tmin
+             4. Frühling Tmax
+             5. Sommer Tmin
+             6. Sommer Tmax
+             7. Herbst Tmin
+             8. Herbst Tmax
+             9. Winter Tmin
+            10. Winter Tmax
+    """
     connection = connection_pool.get_connection()
     try:
-        with connection.cursor() as cursor:
-
-            # 1. Jahresdurchschnitt Tmin
-            # 2. Jahresdurchschnitt Tmax
-            # 3. Frühling Tmin
-            # 4. Frühling Tmax
-            # 5. Sommer Tmin
-            # 6. Sommer Tmax
-            # 7. Herbst Tmin
-            # 8. Herbst Tmax
-            # 9. Winter Tmin
-            # 10. Winter Tmax
+        with (connection.cursor() as cursor):
 
             ten_datasets = []
 
-            cursor.execute(f"SELECT SID FROM Station WHERE station_name = '{station_name}';")
+            cursor.execute("SELECT SID FROM Station WHERE station_id = %s;", (station_id,))
             sid = cursor.fetchall()
             station_id = sid[0][0]
 
-            cursor.execute(f"""
+            # 1. Jahresdurchschnitt Tmin
+            cursor.execute(
+                """
                 SELECT year,
                        SUM(tmin * days_in_month) / SUM(days_in_month)
                 FROM (
@@ -160,16 +202,19 @@ def get_datapoints_for_station(station_name, first_year, last_year):
                                ELSE 31
                            END AS days_in_month
                     FROM Datapoint
-                    WHERE SID = {station_id}
-                      AND year BETWEEN {first_year} AND {last_year}
+                    WHERE SID = %s
+                      AND year BETWEEN %s AND %s
                     GROUP BY year, month
                 ) AS subquery
                 GROUP BY year
                 ORDER BY year;
-            """)
+                """,
+                (station_id, first_year, last_year))
             ten_datasets.append(cursor.fetchall())
 
-            cursor.execute(f"""
+            # Jahresdurchschnitt Tmax
+            cursor.execute(
+                """
                 SELECT year,
                        SUM(tmax * days_in_month) / SUM(days_in_month)
                 FROM (
@@ -186,13 +231,14 @@ def get_datapoints_for_station(station_name, first_year, last_year):
                                ELSE 31
                            END AS days_in_month
                     FROM Datapoint
-                    WHERE SID = {station_id}
-                      AND year BETWEEN {first_year} AND {last_year}
+                    WHERE SID = %s
+                      AND year BETWEEN %s AND %s
                     GROUP BY year, month
                 ) AS subquery
                 GROUP BY year
                 ORDER BY year;
-            """)
+                """,
+                (station_id, first_year, last_year))
             ten_datasets.append(cursor.fetchall())
 
             # 3-8. Jährliche Mittelwerte für Tmin und Tmax in den Jahreszeiten Frühling, Sommer, Herbst
@@ -204,7 +250,8 @@ def get_datapoints_for_station(station_name, first_year, last_year):
 
             for season, (start_month, end_month) in seasons.items():
                 # Tmin
-                cursor.execute(f"""
+                cursor.execute(
+                    """
                     SELECT year,
                            SUM(tmin * days_in_month) / SUM(days_in_month)
                     FROM (
@@ -221,18 +268,20 @@ def get_datapoints_for_station(station_name, first_year, last_year):
                                    ELSE 31
                                END AS days_in_month
                         FROM Datapoint
-                        WHERE SID = {station_id}
-                          AND month BETWEEN {start_month} AND {end_month}
-                          AND year BETWEEN {first_year} AND {last_year}
+                        WHERE SID = %s
+                          AND month BETWEEN %s AND %s
+                          AND year BETWEEN %s AND %s
                         GROUP BY year, month
                     ) AS subquery
                     GROUP BY year
                     ORDER BY year;
-                """)
+                    """,
+                    (station_id, start_month, end_month, first_year, last_year))
                 ten_datasets.append(cursor.fetchall())
 
                 # Tmax
-                cursor.execute(f"""
+                cursor.execute(
+                    """
                     SELECT year,
                            SUM(tmax * days_in_month) / SUM(days_in_month)
                     FROM (
@@ -249,22 +298,24 @@ def get_datapoints_for_station(station_name, first_year, last_year):
                                    ELSE 31
                                END AS days_in_month
                         FROM Datapoint
-                        WHERE SID = {station_id}
-                          AND month BETWEEN {start_month} AND {end_month}
-                          AND year BETWEEN {first_year} AND {last_year}
+                        WHERE SID = %s
+                          AND month BETWEEN %s AND %s
+                          AND year BETWEEN %s AND %s
                         GROUP BY year, month
                     ) AS subquery
                     GROUP BY year
                     ORDER BY year;
-                """)
+                    """,
+                    (station_id, start_month, end_month, first_year, last_year))
                 ten_datasets.append(cursor.fetchall())
 
             # 9. Jährlicher Mittelwert der Temperaturminima im Winter (Dez-Vorjahr + Jan+Feb)
-            cursor.execute(f"""
+            cursor.execute(
+                """
                 SELECT winter_year,
                        SUM(tmin * days_in_month) / SUM(days_in_month)
                 FROM (
-                    SELECT CASE WHEN month = 12 THEN year + 1 ELSE year END AS winter_year,
+                    SELECT CASE WHEN month IN (1, 2) THEN year - 1 ELSE year END AS winter_year,
                            month,
                            AVG(tmin) AS tmin,
                            CASE
@@ -278,22 +329,24 @@ def get_datapoints_for_station(station_name, first_year, last_year):
                                ELSE 30
                            END AS days_in_month
                     FROM Datapoint
-                    WHERE SID = {station_id}
+                    WHERE SID = %s
                       AND (month = 12 OR month BETWEEN 1 AND 2)
-                      AND (CASE WHEN month = 12 THEN year + 1 ELSE year END) BETWEEN {first_year} AND {last_year}
+                      AND (CASE WHEN month = 12 THEN year + 1 ELSE year END) BETWEEN %s AND %s
                     GROUP BY year, month
                 ) AS subquery
                 GROUP BY winter_year
                 ORDER BY winter_year;
-            """)
+                """,
+                (station_id, first_year, last_year))
             ten_datasets.append(cursor.fetchall())
 
             # 10. Jährlicher Mittelwert der Temperaturmaxima im Winter (Dez-Vorjahr + Jan+Feb)
-            cursor.execute(f"""
+            cursor.execute(
+                """
                 SELECT winter_year,
                        SUM(tmax * days_in_month) / SUM(days_in_month)
                 FROM (
-                    SELECT CASE WHEN month = 12 THEN year + 1 ELSE year END AS winter_year,
+                    SELECT CASE WHEN month IN (1, 2) THEN year -1  ELSE year END AS winter_year,
                            month,
                            AVG(tmax) AS tmax,
                            CASE
@@ -307,15 +360,17 @@ def get_datapoints_for_station(station_name, first_year, last_year):
                                ELSE 30
                            END AS days_in_month
                     FROM Datapoint
-                    WHERE SID = {station_id}
+                    WHERE SID = %s
                       AND (month = 12 OR month BETWEEN 1 AND 2)
-                      AND (CASE WHEN month = 12 THEN year + 1 ELSE year END) BETWEEN {first_year} AND {last_year}
+                      AND (CASE WHEN month = 12 THEN year + 1 ELSE year END) BETWEEN %s AND %s
                     GROUP BY year, month
                 ) AS subquery
                 GROUP BY winter_year
                 ORDER BY winter_year;
-            """)
+                """,
+                (station_id, first_year, last_year))
             ten_datasets.append(cursor.fetchall())
+
     finally:
         cursor.close()
         connection.close()
