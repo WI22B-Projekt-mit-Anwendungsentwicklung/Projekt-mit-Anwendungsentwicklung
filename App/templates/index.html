@@ -79,13 +79,13 @@
                     <div class="station-box" data-value="5">5</div>
                     <div class="station-box" data-value="10">10</div>
                     <div class="station-box" data-value="20">20</div>
-                    <input type="number" id="stationsInput" name="stations" placeholder="Custom">
+                    <input type="number" id="stationsInput" name="stations" placeholder="Custom" min="0">
                 </div>
             </div>
 
             <!-- 5. Zeile: Search Button -->
             <div class="form-row">
-                <button type="button" class="search-button" onclick="addMarker(); getStations()">
+                <button type="button" class="search-button" onclick="clearList(); addMarker(); getStations()">
                     Search Weather Stations
                 </button>
             </div>

@@ -354,45 +354,86 @@ header div {
 }
 
 .list-entry {
-            background: #f9f9f9;
-            display: grid;
-            grid-template-columns: 2fr 1fr 1fr 1fr 1fr;
-            gap: 10px;
-        }
+    background: #f9f9f9;
+    display: grid;
+    grid-template-columns: 2fr 1fr 1fr 1fr 1fr;
+    gap: 10px;
+}
 
 .title, .list-item {
-            display: grid;
-            grid-template-columns: 2fr 1fr 1fr 1fr 1fr;
-            align-items: center;
-            padding: 10px;
-            background: #ddd;
-            border: 1px solid #ccc;
-        }
-        .title {
-            font-size: 1.2em;
-            font-weight: bold;
-        }
-        ul {
-            list-style: none;
-            padding: 0;
-        }
-        li {
-            border: 1px solid #ccc;
-            margin: 5px 0;
-            background: #f9f9f9;
-            cursor: pointer;
-        }
-        .list-item {
-            background: #f9f9f9;
-        }
-        .content {
-            max-height: 0;
-            overflow: hidden;
-            transition: max-height 0.3s ease-out, padding 0.3s ease-out;
-            background: #e9e9e9;
-            padding: 0 10px;
-        }
-        .content.open {
-            max-height: 100px;
-            padding: 10px;
-        }
+    display: grid;
+    grid-template-columns: 2fr 1fr 1fr 1fr 1fr;
+    align-items: center;
+    padding: 10px;
+    background: #ddd;
+    border: 1px solid #ccc;
+}
+
+.title {
+    font-size: 1.2em;
+    font-weight: bold;
+}
+
+ul {
+    list-style: none;
+    padding: 0;
+}
+
+li {
+    border: 1px solid #ccc;
+    margin: 5px 0;
+    background: #f9f9f9;
+    cursor: pointer;
+}
+
+.list-item {
+    background: #f9f9f9;
+}
+
+.station-data-div {
+    display: flex;
+    max-height: 0;
+    overflow: hidden;
+    transition: max-height 0.3s ease-out, padding 0.3s ease-out;
+    padding: 0 10px;
+}
+
+.station-data-div.open {
+    min-height: 80vh;
+    padding: 10px;
+}
+
+.station-data-div div {
+    margin: 5px 0;
+}
+
+.station-data-content {
+    width: 50%;
+    background-color: var(--box-background-color);
+    border-radius: 10px;
+    margin: 15px;
+    overflow: auto; /* Scrollbars für den Tabellen-Container */
+    max-height: 400px; /* Maximale Höhe der Tabelle */
+    border: 1px solid #ccc; /* Optional für bessere Sichtbarkeit */
+    padding: 10px; /* Innerer Abstand */
+    box-sizing: border-box; /* Sorgt dafür, dass die Innenräume korrekt berechnet werden */
+}
+
+.station-data-content {
+
+}
+
+table {
+    width: 100%; /* Tabelle füllt den Container */
+    border-collapse: collapse; /* Benachbarte Zellen teilen sich Rahmen */
+}
+
+table th, table td {
+    border: 1px solid #ddd; /* Rahmen für Zellen */
+    padding: 8px; /* Innenabstand */
+    text-align: center; /* Inhalt zentrieren */
+}
+
+table th {
+    background-color: #f4f4f4; /* Header-Hintergrund */
+}

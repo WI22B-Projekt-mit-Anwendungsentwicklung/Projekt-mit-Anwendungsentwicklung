@@ -18,7 +18,6 @@ async function getStations() {
 
 
     try {
-        console.log("Daten zum Senden:", data);
         const response = await fetch("http://localhost:8000/submit", {
             method: "POST",
             headers: {"Content-Type": "application/json"},
@@ -33,14 +32,13 @@ async function getStations() {
     }
 }
 
-async function sendWeatherData() {
-    const stationName = document.getElementById("stationName").value;
+async function getStationData(stationID) {
     const yearStart = document.getElementById("yearStart").value;
     const yearEnd = document.getElementById("yearEnd").value;
 
     // Erstellen des Datenobjekts mit den Eingabewerten
     const data = {
-        stationName: stationName,  // Stationsname als String
+        stationName: stationID,
         yearStart: parseInt(yearStart),
         yearEnd: parseInt(yearEnd)
     };
@@ -54,6 +52,7 @@ async function sendWeatherData() {
 
         const result = await response.json();
         console.log("Serverantwort:", result);
+        createTable(result, stationID, yearStart, yearEnd);
     } catch (error) {
         console.error("Fehler beim Senden der Daten:", error);
     }
