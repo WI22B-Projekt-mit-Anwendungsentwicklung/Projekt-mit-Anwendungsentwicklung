@@ -1,151 +1,398 @@
+:root {
+    --wxBlue: #007BFF;
+    --background-color: #e6e6e6;
+    --primary-text-color: #222222;
+    --header-color: #fdfdfd;
+    --box-background-color: #fff;
+    --hover-color: #0056b3;
+    --box-shadow: rgba(106, 106, 106, 0.25) 0px 13px 27px -5px;
+    --button-text-color: #fff;
+    --input-border-color: #ced4da;
+    --header-color-translucent: rgba(255, 255, 255, 0.6)
+}
+
+.dark-mode {
+    --background-color: #303030;
+    --primary-text-color: #ececec;
+    --header-color: #3c3c3c;
+    --box-background-color: #272727;
+    --box-shadow: rgba(210, 210, 212, 0.25) 0px 13px 27px -5px;
+    --button-text-color: #fff;
+    --input-border-color: #4e4d4d;
+    --header-color-translucent: rgba(64, 64, 64, 0.2)
+}
+
+
+.switch {
+    position: relative;
+    display: inline-block;
+    width: 50px;
+    height: 24px;
+}
+
+.switch input {
+    opacity: 0;
+    width: 0;
+    height: 0;
+}
+
+.theme-slider {
+    position: absolute;
+    cursor: pointer;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: #ccc;
+    transition: 0.4s;
+    border-radius: 24px;
+}
+
+.theme-slider:before {
+    position: absolute;
+    content: "";
+    height: 18px;
+    width: 18px;
+    left: 3px;
+    bottom: 3px;
+    background-color: white;
+    transition: 0.4s;
+    border-radius: 50%;
+}
+
+input:checked + .theme-slider {
+    background-color: #333;
+}
+
+input:checked + .theme-slider:before {
+    transform: translateX(26px);
+}
+
 body {
-  margin: 0;
-  font-family: Arial, sans-serif;
-  background-color: #f9f9f9;
-  color: #333;
+    margin: 0;
+    font-family: Arial, sans-serif;
+    background-color: var(--background-color);
+    color: var(--primary-text-color);
+    transition: all 0.3s ease;
 }
 
 header {
-  height: 60px;
-  padding: 10px;
-  margin-bottom: 40px;
-
-  box-shadow: rgba(50, 50, 93, 0.25) 0px 13px 27px -5px, rgba(0, 0, 0, 0.3) 0px 8px 16px -8px;
-  background-color: #fafafa;
-  color: #007BFF;
-  font-size: 32px;
-  font-weight: bold;
-
-  display: flex;
-  align-items: center;
-  justify-content: center;
+    height: 8vh;
+    padding: 10px;
+    margin-bottom: 40px;
+    position: sticky;
+    top: 0;
+    z-index: 1000;
+    box-shadow: var(--box-shadow);
+    background-color: var(--header-color);
+    color: var(--primary-text-color);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    transition: all 0.5s ease-in-out;
 }
 
-/* Oberer Container (Map + Formular) */
-.container {
-  margin: 0 auto;
-  width: 100%;
-  height: 100%;
+header.scrolled {
+    height: 6vh;
+    background-color: var(--header-color-translucent);
+    backdrop-filter: blur(10px);
+    padding: 5px 10px;
 }
 
-.main-content {
-  display: flex;
-  border-radius: 10px;
-  overflow: hidden;
-  box-shadow: rgba(60, 64, 67, 0.3) 0px 1px 2px 0px, rgba(60, 64, 67, 0.15) 0px 2px 6px 2px;
-  align-items: stretch;
-  margin: 20px;
+header div {
+    flex: 1;
 }
 
-/* Logo */
+.title-div {
+    text-align: left;
+    padding-left: 40px;
+}
+
 .logo {
-  width: auto;
-  height: 100px;
+    width: auto;
+    height: 10vh;
+    transition: all 0.5s ease;
 }
 
-/* Flex Form Latitude/Longitude */
-.flex-form {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  gap: 20px;
+.scrolled .logo {
+    height: 8vh;
 }
 
-/* Karten-Bereich */
-.map {
-  flex: 2;
-  min-height: 500px;
-  border: none;
-  background-color: #e8ecef;
-  display: flex;
-  align-items: center;
-  justify-content: center;
+.toggleTheme-div {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 10px;
+    padding-right: 40px;
 }
 
-#map { height: 180px; }
+.logo-div {
+    display: flex;
+    justify-content: center
+}
+
+.input-div {
+    display: flex;
+    min-height: 50vh;
+    border-radius: 10px;
+    margin: 20px;
+    overflow: hidden;
+    box-shadow: var(--box-shadow);
+    background-color: var(--box-background-color);
+}
+
+.map-div {
+    width: 70%;
+    border: none;
+    background-color: #e8ecef;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
 
 /* Formular-Bereich */
+.form-div {
+    width: 30%;
+    display: flex;
+    justify-content: center;
+    padding: 20px;
+}
+
 .form-container {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  justify-content: space-between;
-  padding: 20px;
-  background-color: #ffffff;
-}
-.form-content {
-  height: 100%;
-  display: flex;
-  flex-direction: column;
-  justify-content: space-between;
+    width: 100%;
+    max-width: 400px; /* Maximale Breite des Formulars */
+    text-align: center;
+    display: flex;
+    flex-direction: column;
+    gap: 20px; /* Abstand zwischen den Zeilen */
 }
 
-.form-container label {
-  font-size: 14px;
-  color: #666;
-  font-weight: bold;
+/* Titel */
+.form-title {
+    font-size: 18px;
+    font-weight: bold;
+    color: var(--primary-text-color);
+    margin-bottom: 10px;
 }
 
-.form-container input,
-.form-container button {
-  padding: 10px;
-  border: 1px solid #ccc;
-  border-radius: 20px;
-  font-size: 16px;
-  outline: none;
+/* Form-Zeilen */
+.form-row {
+    display: flex;
+    flex-direction: column;
+    gap: 8px; /* Abstand zwischen Label und Input */
+    width: 100%;
+    justify-content: center;
+    align-items: center;
 }
 
-.form-container input:focus {
-  border-color: #007BFF;
-  box-shadow: 0 0 5px rgba(0, 123, 255, 0.5);
-}
-.form-container input::placeholder {
-  color: #aaa;
-}
-
-/* Button mit Abstand nach oben */
-.form-container button {
-  background-color: #007BFF;
-  color: white;
-  border: none;
-  cursor: pointer;
-  font-weight: bold;
-  transition: background-color 0.3s ease;
-  margin-top: 20px;
-}
-.form-container button:hover {
-  background-color: #0056b3;
+.longitude-latitude {
+    display: flex;
+    flex-direction: row;
+    justify-content: space-between;
+    gap: 20px; /* Abstand zwischen Longitude und Latitude */
+    width: 100%;
 }
 
-/* Slider etwas nÃ¤her an "Radius:" bringen */
-.slider {
-  width: 80%;
-  margin-top: 5px;
-  margin-bottom: 0;
+/* Nebeneinander-Anordnung von Longitude und Latitude Gruppen */
+.input-group {
+    display: flex;
+    flex-direction: column; /* Titel (Label) und Input untereinander */
+    align-items: center; /* Inhalt zentriert untereinander */
+    flex: 1; /* Nimmt gleichmäßigen Platz ein */
+}
+
+.radius-div {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 10px;
+}
+
+.form-row:first-child > div {
+    flex: 1;
+    text-align: left;
+}
+
+/* Range-Slider und Eingabe daneben */
+.year-range-div {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 10px;
+    width: 100%;
+}
+
+.year-range input {
+    flex: 1;
+    text-align: center;
+    padding: 5px;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    width: 60px;
+}
+
+.range-slider-div {
+    position: relative;
+    pointer-events: none;
+    width: 100%;
+    height: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.year-range-div input[type="range"] {
+    -webkit-appearance: none;
+    appearance: none;
+    width: 100%;
+    height: 5px;
+    background: #ccc;
+    border-radius: 5px;
+    outline: none;
+    pointer-events: all;
+    position: absolute;
+}
+
+.year-range-div input[type="range"]::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    appearance: none;
+    width: 15px;
+    height: 15px;
+    background: var(--wxBlue);
+    border-radius: 50%;
+    cursor: pointer;
+    position: relative;
+    z-index: 2;
+}
+
+.year-range-div input[type="range"]::-moz-range-thumb {
+    width: 15px;
+    height: 15px;
+    background: var(--wxBlue);
+    border-radius: 50%;
+    cursor: pointer;
+    position: relative;
+    z-index: 2;
+}
+
+.stations-selection {
+    display: flex;
+    gap: 10px;
+    justify-content: center;
+    align-items: center;
+}
+
+.station-box {
+    width: 50px;
+    height: 40px;
+    background-color: #ddd;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    cursor: pointer;
+    border-radius: 5px;
+    font-size: 16px;
+    font-weight: bold;
+    transition: background-color 0.3s ease;
+}
+
+.station-box:hover {
+    background-color: #bbb;
+}
+
+.station-box.selected {
+    background-color: var(--wxBlue);
+    color: white;
+}
+
+#stationsInput {
+    width: 70px;
+    height: 40px;
+    text-align: center;
+    font-size: 16px;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+}
+
+
+/* Button */
+.search-button {
+    background-color: var(--wxBlue);
+    color: var(--button-text-color);
+    padding: 10px 20px;
+    border: none;
+    border-radius: 20px;
+    font-size: 16px;
+    cursor: pointer;
+    font-weight: bold;
+    transition: background-color 0.3s ease;
+    width: 100%;
+    max-width: 200px;
+}
+
+.search-button:hover {
+    background-color: var(--hover-color);
 }
 
 .stations-container {
-  width: 100%;
-  display: flex;
+    width: 100%;
+    display: flex;
 }
 
 /* Unterer Container: Weather Stations */
 .stations-list {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  flex-direction: column;
-  width: 100%;
-  padding: 20px;
-  margin: 20px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    flex-direction: column;
+    width: 100%;
+    padding: 20px;
+    margin: 20px;
+    border-radius: 10px;
+    background-color: var(--box-background-color);
+    box-shadow: var(--box-shadow);
+}
 
-  border-radius: 10px;
-  box-shadow: rgba(60, 64, 67, 0.3) 0px 1px 2px 0px, rgba(60, 64, 67, 0.15) 0px 2px 6px 2px;
-}
-.stations-list h3 {
-  color: #333;
-}
-.stations-list p {
-  color: #666;
-  font-size: 14px;
-}
+.list-entry {
+            background: #f9f9f9;
+            display: grid;
+            grid-template-columns: 2fr 1fr 1fr 1fr 1fr;
+            gap: 10px;
+        }
+
+.title, .list-item {
+            display: grid;
+            grid-template-columns: 2fr 1fr 1fr 1fr 1fr;
+            align-items: center;
+            padding: 10px;
+            background: #ddd;
+            border: 1px solid #ccc;
+        }
+        .title {
+            font-size: 1.2em;
+            font-weight: bold;
+        }
+        ul {
+            list-style: none;
+            padding: 0;
+        }
+        li {
+            border: 1px solid #ccc;
+            margin: 5px 0;
+            background: #f9f9f9;
+            cursor: pointer;
+        }
+        .list-item {
+            background: #f9f9f9;
+        }
+        .content {
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.3s ease-out, padding 0.3s ease-out;
+            background: #e9e9e9;
+            padding: 0 10px;
+        }
+        .content.open {
+            max-height: 100px;
+            padding: 10px;
+        }

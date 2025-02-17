@@ -1,90 +1,51 @@
+// Initialize and add the map
 let map;
-    let currentMarker = null;   // letzter Marker
-    let currentCircle = null;   // aktueller Kreis
 
-    function initMap() {
-      map = new google.maps.Map(document.getElementById("map"), {
-        zoom: 2,
-        center: { lat: 0, lng: 0 },
+async function initMap() {
+    map = new google.maps.Map(document.getElementById("map"), {
+        zoom: 5,
+        center: {lat: 48.132247351247926, lng: 8.677355612809267},
         mapTypeId: google.maps.MapTypeId.TERRAIN,
+        mapId: "WXPlore_Map",
         disableDefaultUI: true
-      });
-    }
+    });
+}
 
-    const radiusInput = document.getElementById('radiusInput');
-    const radiusRange = document.getElementById('radius');
-    const radiusValue = document.getElementById('radiusValue');
-    const yearStartInput = document.getElementById('yearStart');
-    const yearEndInput = document.getElementById('yearEnd');
-    const yearRangeDuration = document.getElementById('yearRangeDuration');
 
-    function updateRadiusFromRange() {
-      const value = radiusRange.value;
-      radiusInput.value = value;
-      radiusValue.textContent = `${value} km`;
-    }
+let circleRadius = document.getElementById('radius');
+let currentMarker = null;
+let currentCircle = null;
 
-    function updateRadiusFromInput() {
-      const value = radiusInput.value;
-      radiusRange.value = value;
-      radiusValue.textContent = `${value} km`;
-    }
+function addMarker() {
 
-    radiusRange.addEventListener('input', updateRadiusFromRange);
-    radiusInput.addEventListener('input', updateRadiusFromInput);
 
-    function updateYearRangeDuration() {
-      const yearStart = parseInt(yearStartInput.value);
-      const yearEnd = parseInt(yearEndInput.value);
 
-      if (!isNaN(yearStart) && !isNaN(yearEnd) && yearEnd >= yearStart) {
-        const duration = yearEnd - yearStart;
-        yearRangeDuration.textContent = `Zeitraum: ${duration} Jahre`;
-      } else {
-        yearRangeDuration.textContent = "Zeitraum: - Jahre";
-      }
-    }
+    const latitude = parseFloat(document.getElementById("latitude").value);
+    const longitude = parseFloat(document.getElementById("longitude").value);
 
-    yearStartInput.addEventListener('input', updateYearRangeDuration);
-    yearEndInput.addEventListener('input', updateYearRangeDuration);
+    console.log(latitude, longitude)
 
-    // Marker hinzufügen / aktualisieren
-    function addMarker() {
-      // Entferne alten Marker und alten Kreis (falls vorhanden)
-      if (currentMarker) {
-        currentMarker.setMap(null);
-      }
-      if (currentCircle) {
-        currentCircle.setMap(null);
-      }
-
-      const latitude = parseFloat(document.getElementById("latitude").value);
-      const longitude = parseFloat(document.getElementById("longitude").value);
-
-      if (isNaN(latitude) || isNaN(longitude)) {
+    if (isNaN(latitude) || isNaN(longitude)) {
         alert("Please enter valid Latitude and Longitude values.");
         return;
-      }
+    }
 
-      // Wert des Sliders (in km) in Meter umrechnen
-      const radiusKm = parseFloat(radiusRange.value);
-      const radiusInMeters = radiusKm * 1000;
+    // Wert des Sliders (in km) in Meter umrechnen
+    circleRadius = parseFloat(circleRadius.value) * 1000;
 
-      const position = { lat: latitude, lng: longitude };
+    const position = {lat: latitude, lng: longitude};
 
-      // Neuen Marker setzen
-      currentMarker = new google.maps.Marker({
+    // Neuen Marker setzen
+    const marker = new google.maps.marker.AdvancedMarkerElement({
+        map,
         position: position,
-        map: map,
         title: "Weather Station"
-      });
+    });
 
-      // Karte zentrieren und heranzoomen
-      map.setCenter(position);
-      map.setZoom(5);
 
-      // Kreis zeichnen
-      currentCircle = new google.maps.Circle({
+
+    // Kreis zeichnen
+    currentCircle = new google.maps.Circle({
         strokeColor: "#FF0000",
         strokeOpacity: 0.8,
         strokeWeight: 2,
@@ -92,17 +53,17 @@ let map;
         fillOpacity: 0.35,
         map: map,
         center: position,
-        radius: radiusInMeters
-      });
+        radius: circleRadius,
+    });
 
-      // Zeitraum auslesen
-      const yearStart = parseInt(document.getElementById("yearStart").value);
-      const yearEnd = parseInt(document.getElementById("yearEnd").value);
+    // Zeitraum auslesen
+    const yearStart = parseInt(document.getElementById("yearStart").value);
+    const yearEnd = parseInt(document.getElementById("yearEnd").value);
 
-      if (!yearStart || !yearEnd || yearStart > yearEnd) {
+    if (!yearStart || !yearEnd || yearStart > yearEnd) {
         alert("Please enter a valid year range.");
         return;
-      }
-
-      console.log(`Fetching weather data for years ${yearStart} to ${yearEnd}...`);
     }
+
+    console.log(`Fetching weather data for years ${yearStart} to ${yearEnd}...`);
+}

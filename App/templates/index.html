@@ -8,134 +8,117 @@
     <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
 </head>
 <body>
-  <header>
-    <img src="{{ url_for('static', filename='WXplore.png') }}" alt="Lgog" class="logo">
-  </header>
+<header>
+    <div class="title-div">
+        <p>Projekt mit Anwendungsentwicklung</p>
+    </div>
+    <div class="logo-div">
+        <img src="{{ url_for('static', filename='WXplore.png') }}" alt="Lgog" class="logo">
+    </div>
+    <div class="toggleTheme-div">
+        <span>Light</span>
+        <label class="switch">
+            <input type="checkbox" id="modeToggle">
+            <span class="theme-slider"></span>
+        </label>
+        <span>Dark</span>
+    </div>
+</header>
 
-  <div class="container">
-    <div class="main-content">
-      <!-- Karte -->
-      <div class="map" id="map">
+<div class="input-div">
+    <div class="map-div" id="map">
         <span>Loading Map...</span>
-      </div>
+    </div>
+    <div class="form-div">
+        <div class="form-container">
+            <!-- Titel -->
+            <h2 class="form-title">Please Enter Your Data</h2>
 
-      <!-- Formular -->
-      <div class="form-container">
-        <div class="form-content">
-          <div class="flex-form">
-            <label for="latitude">
-              Latitude
-            </label>
-            <input
-              type="number"
-              id="latitude"
-              name="latitude"
-              placeholder="Latitude"
-            />
+            <!-- 1. Zeile: Longitude und Latitude -->
+            <div class="form-row longitude-latitude">
+                <!-- Longitude -->
+                <div class="input-group">
+                    <label for="longitude">Longitude</label>
+                    <input type="number" id="longitude" name="longitude" placeholder="e.g.: 8.677355612809267">
+                </div>
 
-            <label for="longitude">
-              Longitude
-            </label>
-            <input
-              type="number"
-              id="longitude"
-              name="longitude"
-              placeholder="Longitude"
-            />
-          </div>
+                <!-- Latitude -->
+                <div class="input-group">
+                    <label for="latitude">Latitude</label>
+                    <input type="number" id="latitude" name="latitude" placeholder="e.g.: 48.132247351247926">
+                </div>
+            </div>
 
-          <label for="radius">
-            Radius (max 100 km):
-          </label>
-          <div style="display: flex; align-items: center; gap: 10px;">
-            <input
-              type="number"
-              id="radiusInput"
-              min="1"
-              max="100"
-              step="1"
-              value="100"
-              oninput="updateRadiusFromInput()"
-            />
-            <input
-              type="range"
-              id="radius"
-              min="1"
-              max="100"
-              step="1"
-              value="100"
-              oninput="updateRadiusFromRange()"
-            />
-            <span id="radiusValue">100 km</span>
-          </div>
+            <!-- 2. Zeile: Radius-Eingabe -->
+            <div class="form-row">
+                <label for="radius">Search Radius</label>
+                <div class="radius-div">
+                    <input type="range" id="radiusSlider" min="1" max="100" step="1" value="50">
+                    <input type="number" id="radius" min="1" max="100" step="1" value="50">
+                    <p>km</p>
+                </div>
+            </div>
 
-          <!-- Jahr Zeitraum -->
-          <label>
-            Year Range:
-          </label>
-          <div style="display: flex; align-items: center; gap: 10px;">
-            <input
-              type="number"
-              id="yearStart"
-              name="yearStart"
-              min="1920"
-              max="2025"
-              step="1"
-              placeholder="Start Year"
-            />
-            <span>to</span>
-            <input
-              type="number"
-              id="yearEnd"
-              name="yearEnd"
-              min="1920"
-              max="2025"
-              step="1"
-              placeholder="End Year"
-            />
-            <span id="yearRangeDuration">Zeitraum: - Jahre</span>
-          </div>
+            <!-- 3. Zeile: Year Range -->
+            <div class="form-row">
+                <h3>Year Range</h3>
+                <div class="year-range-div">
+                    <input type="number" id="yearStart" min="1920" max="2024" value="1990">
+                    <div class="range-slider-div">
+                        <input type="range" id="yearStartSlider" min="1920" max="2024" value="1990" step="1">
+                        <input type="range" id="yearEndSlider" min="1920" max="2024" value="2002" step="1">
+                    </div>
+                    <input type="number" id="yearEnd" min="1920" max="2024" value="2002">
+                </div>
+            </div>
 
-          <label for="stations">
-            Number of Weather Stations
-          </label>
-          <input
-            type="number"
-            id="stations"
-            name="stations"
-            placeholder="Number of Weather Stations"
-          />
+            <!-- 4. Zeile: Anzahl der Stationen -->
+            <div class="form-row">
+                <label for="stationsInput">Number of Stations</label>
+                <div class="stations-selection">
+                    <div class="station-box" data-value="5">5</div>
+                    <div class="station-box" data-value="10">10</div>
+                    <div class="station-box" data-value="20">20</div>
+                    <input type="number" id="stationsInput" name="stations" placeholder="Custom">
+                </div>
+            </div>
 
-          <input
-            type="text"
-            id="stationName"
-            name="stationName"
-            placeholder="Name of the Stations"
-          />
-          <p>AE000041196</p>
-
+            <!-- 5. Zeile: Search Button -->
+            <div class="form-row">
+                <button type="button" class="search-button" onclick="addMarker(); getStations()">
+                    Search Weather Stations
+                </button>
+            </div>
         </div>
-        <button type="button" onclick="sendStationData()">Search Weather Stations</button><!-- addMarker() -->
-        <button type="button" onclick="sendWeatherData()">Get Station data</button>
-      </div>
     </div>
-  </div>
+</div>
 
-  <div class="stations-container">
+<div class="stations-container">
     <div class="stations-list">
-      <h3>Weather Stations</h3>
-      <p id="responseMessageStation"></p>
-      <p id="responseMessageStationData"></p>
-      <p>No weather stations found. Please perform a search.</p>
-    </div>
-  </div>
+        <h3>Weather Stations</h3>
+        <div class="title">
+            <span>Name</span>
+            <span>ID</span>
+            <span>Longitude</span>
+            <span>Latitude</span>
+            <span>More Information</span>
+        </div>
+        <ul id="stationsList">
 
-  <!-- map.js -->
-  <script src="{{url_for('static', filename='js/map.js')}}"></script>
-  <!-- script.js -->
-  <script src="{{url_for('static', filename='js/script.js')}}"></script>
-  <!-- Google Maps API mit Callback auf initMap -->
-  <script async defer src="https://maps.googleapis.com/maps/api/js?key=AIzaSyBmgMa1SuYTka5RbQBGvSlgi02QCRcv3_k&callback=initMap"></script>
+        </ul>
+        <p>Please perform a search.</p>
+    </div>
+</div>
+<!-- map.js -->
+<script src="{{url_for('static', filename='js/map.js')}}"></script>
+<!-- script.js -->
+<script src="{{url_for('static', filename='js/script.js')}}"></script>
+<!-- routes.js -->
+<script src="{{url_for('static', filename='js/routes.js')}}"></script>
+<!-- Google Maps API mit Callback auf initMap -->
+<script async
+        src="https://maps.googleapis.com/maps/api/js?key=AIzaSyBmgMa1SuYTka5RbQBGvSlgi02QCRcv3_k&loading=async&callback=initMap&v=weekly&libraries=marker">
+</script>
 </body>
 </html>
 
