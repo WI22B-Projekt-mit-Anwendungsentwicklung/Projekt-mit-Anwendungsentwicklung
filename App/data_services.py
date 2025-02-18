@@ -19,7 +19,7 @@ connection_pool = pooling.MySQLConnectionPool(
 )
 
 # Stationen im Radius finden
-def find_stations_within_radius(stations, latitude, longitude, radius, max_stations=0):
+def find_stations_within_radius(stations, latitude, longitude, radius, max_stations):
     """
     Findet alle Stationen innerhalb eines bestimmten Radius um eine gegebene Koordinate.
 
@@ -39,7 +39,7 @@ def find_stations_within_radius(stations, latitude, longitude, radius, max_stati
 
     sorted_result = sorted(result, key=lambda x: x[1])
 
-    if max_stations > 0:
+    if max_stations >= 0:
         sorted_result = sorted_result[:max_stations]
 
     return sorted_result
@@ -313,16 +313,16 @@ def get_datapoints_for_station(station_id, first_year, last_year):
             cursor.execute(
                 """
                 SELECT winter_year,
-                       SUM(tmin * days_in_month) / SUM(days_in_month)
+                       SUM(tmin * days_in_month) / SUM(days_in_month) AS avg_tmin
                 FROM (
                     SELECT CASE WHEN month IN (1, 2) THEN year - 1 ELSE year END AS winter_year,
                            month,
                            AVG(tmin) AS tmin,
                            CASE
-                               WHEN month = 2 THEN
-                                   CASE
-                                       WHEN (year % 4 = 0 AND (year % 100 != 0 OR year % 400 = 0)) THEN 29
-                                       ELSE 28
+                               WHEN month = 2 THEN 
+                                   CASE 
+                                       WHEN (year % 4 = 0 AND (year % 100 != 0 OR year % 400 = 0)) THEN 29 
+                                       ELSE 28 
                                    END
                                WHEN month = 12 THEN 31
                                WHEN month = 1 THEN 31
@@ -331,7 +331,7 @@ def get_datapoints_for_station(station_id, first_year, last_year):
                     FROM Datapoint
                     WHERE SID = %s
                       AND (month = 12 OR month BETWEEN 1 AND 2)
-                      AND (CASE WHEN month = 12 THEN year + 1 ELSE year END) BETWEEN %s AND %s
+                      AND (CASE WHEN month IN (1,2) THEN year - 1 ELSE year END) BETWEEN %s AND %s
                     GROUP BY year, month
                 ) AS subquery
                 GROUP BY winter_year
@@ -344,16 +344,16 @@ def get_datapoints_for_station(station_id, first_year, last_year):
             cursor.execute(
                 """
                 SELECT winter_year,
-                       SUM(tmax * days_in_month) / SUM(days_in_month)
+                       SUM(tmax * days_in_month) / SUM(days_in_month) AS avg_tmax
                 FROM (
-                    SELECT CASE WHEN month IN (1, 2) THEN year -1  ELSE year END AS winter_year,
+                    SELECT CASE WHEN month IN (1, 2) THEN year - 1 ELSE year END AS winter_year,
                            month,
                            AVG(tmax) AS tmax,
                            CASE
-                               WHEN month = 2 THEN
-                                   CASE
-                                       WHEN (year % 4 = 0 AND (year % 100 != 0 OR year % 400 = 0)) THEN 29
-                                       ELSE 28
+                               WHEN month = 2 THEN 
+                                   CASE 
+                                       WHEN (year % 4 = 0 AND (year % 100 != 0 OR year % 400 = 0)) THEN 29 
+                                       ELSE 28 
                                    END
                                WHEN month = 12 THEN 31
                                WHEN month = 1 THEN 31
@@ -362,7 +362,7 @@ def get_datapoints_for_station(station_id, first_year, last_year):
                     FROM Datapoint
                     WHERE SID = %s
                       AND (month = 12 OR month BETWEEN 1 AND 2)
-                      AND (CASE WHEN month = 12 THEN year + 1 ELSE year END) BETWEEN %s AND %s
+                      AND (CASE WHEN month IN (1,2) THEN year - 1 ELSE year END) BETWEEN %s AND %s
                     GROUP BY year, month
                 ) AS subquery
                 GROUP BY winter_year

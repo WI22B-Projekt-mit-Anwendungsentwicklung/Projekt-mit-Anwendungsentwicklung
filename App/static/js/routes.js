@@ -12,8 +12,8 @@ async function getStations() {
         radius: parseInt(radius),
         yearStart: parseInt(yearStart),
         yearEnd: parseInt(yearEnd),
-        // Wenn stations nicht angegeben ist, setze es auf null oder einen Standardwert (z.B. 0)
-        stations: stations ? parseInt(stations) : 0  // 'stations' wird entweder als Zahl oder als null übergeben
+        // Wenn stations nicht angegeben ist, setze es auf einen Standardwert (-1)
+        stations: stations ? parseInt(stations) : -1  // 'stations' wird entweder als Zahl oder als -1 übergeben
     };
 
 

@@ -76,15 +76,15 @@ def download_and_create_datapoints(station_id: str):
         # Jede Zeile der Datei durchgehen
         with open(file_name, 'r') as file:
             for line in file:
-                line_17 = line[17:21]
-                if len(line) > 21 and (line_17 == "TMAX" or line_17 == "TMIN"):
+                temp_element = line[17:21]
+                if len(line) > 21 and (temp_element == "TMAX" or temp_element == "TMIN"):
                     # Extrahiere Datum (z.B. Jahr + Monat)
                     current_date = int(line[11:17])  # Jahr + Monat (YYYYMM)
 
                     # Wenn es eine TMAX Zeile ist, hole die Temperaturdaten
-                    if line_17 == "TMAX":
+                    if temp_element == "TMAX":
                         tmax_data = extract_average_value(line)
-                    elif line_17 == "TMIN":
+                    elif temp_element == "TMIN":
                         tmin_data = extract_average_value(line)
 
                     if tmin_data != 0 and tmax_data != 0:
