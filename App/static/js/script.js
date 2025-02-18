@@ -84,12 +84,11 @@ stationsInput.addEventListener('input', function () {
     stationBoxes.forEach(b => b.classList.remove('selected'));
 });
 
-function createList(stations) {
+function createList(stations, yearStart, yearEnd, titleSeason) {
     clearList();
-
     if (stations.length !== 0) {
         stations.forEach(station => {
-            addStation(station); // Station zur Liste hinzufügen
+            addStation(station, yearStart, yearEnd, titleSeason); // Station zur Liste hinzufügen
         });
     } else {
         console.log("Keine Einträge vorhanden.");
@@ -97,7 +96,13 @@ function createList(stations) {
 
 }
 
-function addStation(station) {
+function addStation(station, yearStart, yearEnd, titleSeason) {
+    let tableHeaderHTML = '<tr>' + titleSeason.map(header => `<th>${header}</th>`).join('') + '</tr>';
+    let tableRowsHTML = '';
+    for (let year = yearStart; year <= yearEnd; year++) {
+        tableRowsHTML += `<tr><td>${year}</td>` + '<td></td>'.repeat(10) + '</tr>';
+    }
+
     let liHTMLContent = `
     <div class="list-entry">
         <div class="list-item">
@@ -121,9 +126,14 @@ function addStation(station) {
     </div>
     <div class="station-data-div" id="station-data-div-${station[0][0]}">
         <div class="station-data-content">
-            <table class="stations-data-table" id="station-data-table-${station[0][0]}"></table>
+            <table class="stations-data-table" id="station-data-table-${station[0][0]}">
+                ${tableHeaderHTML}
+                ${tableRowsHTML}
+            </table>
         </div>
-        <div class="station-data-content" id="station-data-chart-${station[0][0]}"></div>
+        <div class="station-data-content">
+            <canvas id="station-data-chart-${station[0][0]}"></canvas>
+        </div>
     </div>
     `
     let newLi = document.createElement("li");
@@ -138,67 +148,83 @@ function clearList() {
 }
 
 
-function toggleContent(index) {
-    let id = `station-data-div-${index}`;
-    console.log(id);
-    let content = document.getElementById(`station-data-div-${index}`);
+function toggleContent(stationID) {
+    let content = document.getElementById(`station-data-div-${stationID}`);
     content.classList.toggle('open');
 }
 
-function createTable(data, index, yearStart, yearEnd) {
-    let table = document.getElementById(`station-data-table-${index}`);
+function fillTable(data, stationID) {
+    let table = document.getElementById(`station-data-table-${stationID}`);
+    if (!table) return;
 
-    // Pruefen, ob Daten vorhanden sind
-    if (!data || data.length === 0 || !table) {
-        console.warn(`Keine Daten oder Ziel-Tabelle für Index ${index} gefunden.`);
-        return;
+    let rows = table.getElementsByTagName("tr");
+    let yearIndexMap = {};
+
+    for (let i = 1; i < rows.length; i++) {
+        let year = parseInt(rows[i].cells[0].textContent);
+        yearIndexMap[year] = i;
     }
 
-    // Tabelle zurücksetzen
-    table.innerHTML = '';
-
-    // Alle Jahre im Bereich sammeln
-    let years = [];
-    for (let year = yearStart; year <= yearEnd; year++) {
-        years.push(year);
-    }
-
-    // Erstelle Header-Row (mit "Jahr" als erster Spalte)
-    let headerRow = document.createElement('tr');
-    let yearHeader = document.createElement('th');
-    yearHeader.textContent = 'Jahr'; // Erste Spalte: "Jahr"
-    headerRow.appendChild(yearHeader);
-
-    // Dynamischer Header für Spalten
-    for (let i = 0; i < data.length; i++) {
-        let th = document.createElement('th');
-        th.textContent = `Spalte ${i + 1}`; // Beschriftung: Spalte 1, Spalte 2, ...
-        headerRow.appendChild(th);
-    }
-    table.appendChild(headerRow);
-
-    // Erstellen der Zeilen: Jahr-basierte Iteration
-    for (let i = 0; i < years.length; i++) {
-        let row = document.createElement('tr');
-
-        // Erstelle die Spalte für das Jahr
-        let yearCell = document.createElement('td');
-        yearCell.textContent = years[i];
-        row.appendChild(yearCell);
-
-        // Jede Datenspalte für das aktuelle Jahr prüfen
-        for (let colIndex = 0; colIndex < data.length; colIndex++) {
-            let cell = document.createElement('td');
-            // Hole den Wert, falls für das Jahr ein Wert in dieser Spalte vorliegt
-            if (data[colIndex][i] !== undefined) {
-                cell.textContent = data[colIndex][i]; // Wert setzen
-            } else {
-                cell.textContent = ''; // Leer lassen, wenn kein Wert vorhanden ist
+    for (let col = 0; col < data.length; col++) {
+        let columnData = data[col];
+        for (let i = 0; i < columnData.length; i++) {
+            let [year, value] = columnData[i];
+            if (yearIndexMap.hasOwnProperty(year)) {
+                let rowIndex = yearIndexMap[year];
+                rows[rowIndex].cells[col + 1].textContent = value.toFixed(2);
             }
-            row.appendChild(cell);
         }
-
-        // Zeile zur Tabelle hinzufügen
-        table.appendChild(row);
     }
+}
+
+
+const colorMap = {};
+const predefinedColors = [
+    'rgb(255, 99, 132)', 'rgb(54, 162, 235)', 'rgb(255, 206, 86)',
+    'rgb(75, 192, 192)', 'rgb(153, 102, 255)', 'rgb(255, 159, 64)',
+    'rgb(199, 199, 199)', 'rgb(83, 102, 255)', 'rgb(255, 99, 64)', 'rgb(99, 255, 132)'
+];
+function createChart(data, titleSeason, stationID) {
+    let ctx = document.getElementById(`station-data-chart-${stationID}`).getContext('2d');
+
+    let datasets = data.map((column, index) => {
+        let titleIndex = index + 1;
+        if (!colorMap[titleSeason[titleIndex]]) {
+            colorMap[titleSeason[titleIndex]] = predefinedColors[titleIndex % predefinedColors.length];
+        }
+        return {
+            label: titleSeason[titleIndex],
+            data: column.map(entry => ({x: entry[0], y: entry[1]})),
+            fill: false,
+            borderColor: colorMap[titleSeason[titleIndex]],
+            tension: 0.1
+        };
+    });
+
+    new Chart(ctx, {
+        type: 'line',
+        data: {
+            datasets: datasets
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            scales: {
+                x: {
+                    type: 'linear',
+                    position: 'bottom',
+                    title: {
+                        display: true,
+                        text: 'Year'
+                    }
+                },
+                y: {
+                    title: {
+                        display: true,
+                        text: 'Temperature (°C)'
+                    }
+                }
+            }
+        }
+    });
 }

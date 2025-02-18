@@ -8,7 +8,8 @@
     --box-shadow: rgba(106, 106, 106, 0.25) 0px 13px 27px -5px;
     --button-text-color: #fff;
     --input-border-color: #ced4da;
-    --header-color-translucent: rgba(255, 255, 255, 0.6)
+    --header-color-translucent: rgba(255, 255, 255, 0.6);
+    --table-background-color: #fdfdfd;
 }
 
 .dark-mode {
@@ -19,7 +20,8 @@
     --box-shadow: rgba(210, 210, 212, 0.25) 0px 13px 27px -5px;
     --button-text-color: #fff;
     --input-border-color: #4e4d4d;
-    --header-color-translucent: rgba(64, 64, 64, 0.2)
+    --header-color-translucent: rgba(64, 64, 64, 0.2);
+    --table-background-color: #272727;
 }
 
 
@@ -375,6 +377,7 @@ header div {
 }
 
 ul {
+    max-width: 95vw;
     list-style: none;
     padding: 0;
 }
@@ -399,7 +402,7 @@ li {
 }
 
 .station-data-div.open {
-    min-height: 80vh;
+    min-height: 60vh;
     padding: 10px;
 }
 
@@ -413,14 +416,10 @@ li {
     border-radius: 10px;
     margin: 15px;
     overflow: auto; /* Scrollbars für den Tabellen-Container */
-    max-height: 400px; /* Maximale Höhe der Tabelle */
+    height: 55vh; /* Maximale Höhe der Tabelle */
     border: 1px solid #ccc; /* Optional für bessere Sichtbarkeit */
     padding: 10px; /* Innerer Abstand */
     box-sizing: border-box; /* Sorgt dafür, dass die Innenräume korrekt berechnet werden */
-}
-
-.station-data-content {
-
 }
 
 table {
@@ -435,5 +434,5 @@ table th, table td {
 }
 
 table th {
-    background-color: #f4f4f4; /* Header-Hintergrund */
+    background-color: var(--table-background-color); /* Header-Hintergrund */
 }

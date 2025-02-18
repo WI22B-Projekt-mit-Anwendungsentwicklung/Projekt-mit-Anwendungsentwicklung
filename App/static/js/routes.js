@@ -23,10 +23,15 @@ async function getStations() {
             headers: {"Content-Type": "application/json"},
             body: JSON.stringify(data)
         });
-
         const result = await response.json();
-        console.log("Serverantwort:", result);
-        createList(result);
+        console.log(result);
+
+        let titleSeason = ["Year", "Annual Average Tmin", "Annual Average Tmax", "Spring Tmin", "Spring Tmax", "Summer Tmin", "Summer Tmax", "Autumn Tmin", "Autumn Tmax", "Winter Tmin", "Winter Tmax"];
+        if (latitude < 0) {
+            titleSeason = ["Year", "Annual Average Tmin", "Annual Average Tmax", "Autumn Tmin", "Autumn Tmax", "Winter Tmin", "Winter Tmax", "Spring Tmin", "Spring Tmax", "Summer Tmin", "Summer Tmax"];
+        }
+
+        createList(result, yearStart, yearEnd, titleSeason);
     } catch (error) {
         console.error("Fehler beim Senden der Daten:", error);
     }
@@ -35,6 +40,8 @@ async function getStations() {
 async function getStationData(stationID) {
     const yearStart = document.getElementById("yearStart").value;
     const yearEnd = document.getElementById("yearEnd").value;
+    const latitude = document.getElementById("latitude").value;
+
 
     // Erstellen des Datenobjekts mit den Eingabewerten
     const data = {
@@ -49,10 +56,16 @@ async function getStationData(stationID) {
             headers: {"Content-Type": "application/json"},
             body: JSON.stringify(data)
         });
-
         const result = await response.json();
-        console.log("Serverantwort:", result);
-        createTable(result, stationID, yearStart, yearEnd);
+        console.log(result);
+
+        let titleSeason = ["Year", "Annual Average Tmin", "Annual Average Tmax", "Spring Tmin", "Spring Tmax", "Summer Tmin", "Summer Tmax", "Autumn Tmin", "Autumn Tmax", "Winter Tmin", "Winter Tmax"];
+        if (latitude < 0) {
+            titleSeason = ["Year", "Annual Average Tmin", "Annual Average Tmax", "Autumn Tmin", "Autumn Tmax", "Winter Tmin", "Winter Tmax", "Spring Tmin", "Spring Tmax", "Summer Tmin", "Summer Tmax"];
+        }
+
+        fillTable(result, stationID);
+        createChart(result, titleSeason, stationID);
     } catch (error) {
         console.error("Fehler beim Senden der Daten:", error);
     }
