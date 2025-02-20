@@ -125,13 +125,13 @@ function addStation(station, yearStart, yearEnd, titleSeason) {
         </div>
     </div>
     <div class="station-data-div" id="station-data-div-${station[0][0]}">
-        <div class="station-data-content">
+        <div class="station-data-content table-div">
             <table class="stations-data-table" id="station-data-table-${station[0][0]}">
                 ${tableHeaderHTML}
                 ${tableRowsHTML}
             </table>
         </div>
-        <div class="station-data-content">
+        <div class="station-data-content chart-div">
             <canvas id="station-data-chart-${station[0][0]}"></canvas>
         </div>
     </div>
