@@ -120,8 +120,9 @@ function addStation(station, yearStart, yearEnd, titleSeason) {
         <div class="list-item">
             <p>${station[1].toFixed(2)} km</p>
         </div>
-        <div class="list-item">
-            <button onclick="toggleContent('${station[0][0]}'); getStationData('${station[0][0]}')">Aufklappen</button>
+        <div class="list-item arrow-div">
+            <img src="/static/arrow.png" class="toggle-arrow" id="arrow-${station[0][0]}" 
+                onclick="toggleContent('${station[0][0]}'); getStationData('${station[0][0]}')" />
         </div>
     </div>
     <div class="station-data-div" id="station-data-div-${station[0][0]}">
@@ -150,8 +151,12 @@ function clearList() {
 
 function toggleContent(stationID) {
     let content = document.getElementById(`station-data-div-${stationID}`);
+    let arrow = document.getElementById(`arrow-${stationID}`);
+
     content.classList.toggle('open');
+    arrow.classList.toggle('rotated');
 }
+
 
 function fillTable(data, stationID) {
     let table = document.getElementById(`station-data-table-${stationID}`);
@@ -184,6 +189,7 @@ const predefinedColors = [
     'rgb(75, 192, 192)', 'rgb(153, 102, 255)', 'rgb(255, 159, 64)',
     'rgb(199, 199, 199)', 'rgb(83, 102, 255)', 'rgb(255, 99, 64)', 'rgb(99, 255, 132)'
 ];
+
 function createChart(data, titleSeason, stationID) {
     let ctx = document.getElementById(`station-data-chart-${stationID}`).getContext('2d');
 
@@ -216,6 +222,11 @@ function createChart(data, titleSeason, stationID) {
                     title: {
                         display: true,
                         text: 'Year'
+                    },
+                    ticks: {
+                        callback: function (value) {
+                            return Math.round(value);
+                        }
                     }
                 },
                 y: {

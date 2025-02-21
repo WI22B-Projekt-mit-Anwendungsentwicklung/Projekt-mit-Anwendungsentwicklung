@@ -38,20 +38,20 @@
             <div class="form-row longitude-latitude">
                 <!-- Longitude -->
                 <div class="input-group">
-                    <label for="longitude">Longitude</label>
+                    <h3>Longitude</h3>
                     <input class="user-input" type="number" id="longitude" name="longitude" placeholder="e.g.: 8.677355612809267">
                 </div>
 
                 <!-- Latitude -->
                 <div class="input-group">
-                    <label for="latitude">Latitude</label>
+                    <h3>Latitude</h3>
                     <input class="user-input" type="number" id="latitude" name="latitude" placeholder="e.g.: 48.132247351247926">
                 </div>
             </div>
 
             <!-- 2. Zeile: Radius-Eingabe -->
             <div class="form-row">
-                <label for="radius">Search Radius</label>
+                <h3>Search Radius</h3>
                 <div class="radius-div">
                     <input type="range" id="radiusSlider" min="1" max="100" step="1" value="50">
                     <input class="user-input" type="number" id="radius" min="1" max="100" step="1" value="50">
@@ -74,7 +74,7 @@
 
             <!-- 4. Zeile: Anzahl der Stationen -->
             <div class="form-row">
-                <label for="stationsInput">Number of Stations</label>
+                <h3>Number of Stations</h3>
                 <div class="stations-selection">
                     <div class="station-box" data-value="5">5</div>
                     <div class="station-box" data-value="10">10</div>
@@ -93,9 +93,11 @@
     </div>
 </div>
 
-<div class="stations-container">
+<div class="stations-container d-none" id="stationList">
     <div class="stations-list">
-        <h3>Weather Stations</h3>
+        <div class="stations-list-title">
+            <h2>Weather Stations</h2>
+        </div>
         <div class="title">
             <span>Name</span>
             <span>ID</span>

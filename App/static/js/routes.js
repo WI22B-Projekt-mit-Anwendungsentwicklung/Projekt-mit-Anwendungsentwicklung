@@ -5,6 +5,7 @@ async function getStations() {
     const yearStart = document.getElementById("yearStart").value;
     const yearEnd = document.getElementById("yearEnd").value;
     const stations = document.getElementById("stationsInput").value;
+    let statioList = document.querySelector("#stationList");
 
     const data = {
         latitude: parseFloat(latitude),
@@ -24,14 +25,20 @@ async function getStations() {
             body: JSON.stringify(data)
         });
         const result = await response.json();
-        console.log(result);
 
         let titleSeason = ["Year", "Annual Average Tmin", "Annual Average Tmax", "Spring Tmin", "Spring Tmax", "Summer Tmin", "Summer Tmax", "Autumn Tmin", "Autumn Tmax", "Winter Tmin", "Winter Tmax"];
         if (latitude < 0) {
             titleSeason = ["Year", "Annual Average Tmin", "Annual Average Tmax", "Autumn Tmin", "Autumn Tmax", "Winter Tmin", "Winter Tmax", "Spring Tmin", "Spring Tmax", "Summer Tmin", "Summer Tmax"];
         }
 
-        createList(result, yearStart, yearEnd, titleSeason);
+        if (result.length > 0) {
+            statioList.classList.remove("d-none");
+            createList(result, yearStart, yearEnd, titleSeason);
+        } else {
+            alert("No stations found. Please try again.");
+            statioList.classList.add("d-none");
+        }
+
     } catch (error) {
         console.error("Fehler beim Senden der Daten:", error);
     }
@@ -57,7 +64,6 @@ async function getStationData(stationID) {
             body: JSON.stringify(data)
         });
         const result = await response.json();
-        console.log(result);
 
         let titleSeason = ["Year", "Annual Average Tmin", "Annual Average Tmax", "Spring Tmin", "Spring Tmax", "Summer Tmin", "Summer Tmax", "Autumn Tmin", "Autumn Tmax", "Winter Tmin", "Winter Tmax"];
         if (latitude < 0) {

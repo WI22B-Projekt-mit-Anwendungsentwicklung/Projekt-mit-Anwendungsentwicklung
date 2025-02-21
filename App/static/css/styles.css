@@ -26,6 +26,14 @@
     --table-header-background-color: #292929;
 }
 
+h2 {
+    color: var(--primary-text-color);
+    text-decoration: underline;
+}
+
+.d-none {
+    display: none !important;
+}
 
 .switch {
     position: relative;
@@ -75,6 +83,7 @@ input:checked + .theme-slider:before {
 .user-input {
     border-radius: 24px;
     padding: 10px;
+    border: 2px solid var(--primary-text-color);
 }
 
 body {
@@ -176,19 +185,10 @@ header div {
     gap: 20px; /* Abstand zwischen den Zeilen */
 }
 
-/* Titel */
-.form-title {
-    font-size: 18px;
-    font-weight: bold;
-    color: var(--primary-text-color);
-    margin-bottom: 10px;
-}
-
 /* Form-Zeilen */
 .form-row {
     display: flex;
     flex-direction: column;
-    gap: 8px; /* Abstand zwischen Label und Input */
     width: 100%;
     justify-content: center;
     align-items: center;
@@ -229,15 +229,6 @@ header div {
     align-items: center;
     gap: 10px;
     width: 100%;
-}
-
-.year-range input {
-    flex: 1;
-    text-align: center;
-    padding: 5px;
-    border: 1px solid #ccc;
-    border-radius: 5px;
-    width: 60px;
 }
 
 .range-slider-div {
@@ -295,6 +286,7 @@ header div {
     width: 50px;
     height: 40px;
     background-color: #ddd;
+    color: black;
     display: flex;
     justify-content: center;
     align-items: center;
@@ -313,16 +305,6 @@ header div {
     background-color: var(--wxBlue);
     color: white;
 }
-
-#stationsInput {
-    width: 70px;
-    height: 40px;
-    text-align: center;
-    font-size: 16px;
-    border: 1px solid #ccc;
-    border-radius: 5px;
-}
-
 
 /* Button */
 .search-button {
@@ -360,6 +342,10 @@ header div {
     box-shadow: var(--box-shadow);
 }
 
+.stations-list-title{
+    text-align: center;
+}
+
 .title, .list-entry {
     display: grid;
     grid-template-columns: 2fr 1fr 1fr 1fr 1fr 1fr;
@@ -385,6 +371,24 @@ li {
     background: var(--table-header-background-color);
     cursor: pointer;
 }
+
+.arrow-div {
+    display: flex;
+    justify-content: flex-end;
+    padding-right: 35px;
+}
+
+.toggle-arrow {
+    width: 20px;  /* Automatische Anpassung */
+    height: auto;
+    cursor: pointer;
+    transition: transform 0.3s ease-in-out;
+}
+
+.toggle-arrow.rotated {
+    transform: rotate(180deg);
+}
+
 .station-data-div {
     display: flex;
     max-height: 0;
