@@ -37,9 +37,15 @@ function addMarker() {
     // Neuen Marker setzen (AdvancedMarkerElement)
     currentMarker = new google.maps.marker.AdvancedMarkerElement({
         map,
-        position: position,
-        title: "Weather Station"
+        position: position
     });
+
+    currentMarker.content = document.createElement("div");
+    currentMarker.content.innerHTML = `
+    <svg width="30" height="30" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+        <path fill="#000000" d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7z"/>
+        <circle cx="12" cy="9" r="3" fill="white"/>
+    </svg>`;
 
     // Kreis um den Marker zeichnen
     currentCircle = new google.maps.Circle({
@@ -66,3 +72,41 @@ function addMarker() {
         return;
     }
 }
+
+let weatherStationMarkers = []; // Speichert alle Wetterstationsmarker
+
+function addWeatherStations(stations) {
+    if (!Array.isArray(stations) || stations.length === 0) {
+        console.warn("No stations available to display.");
+        return;
+    }
+
+    // Alle vorherigen Marker entfernen
+    weatherStationMarkers.forEach(marker => marker.map = null);
+    weatherStationMarkers = []; // Liste leeren
+
+    stations.forEach(station => {
+        const name = station[0][1]; // Name der Wetterstation
+        const lat = station[0][2]; // Breitengrad
+        const lng = station[0][3]; // Längengrad
+
+        const position = { lat, lng };
+
+        const marker = new google.maps.marker.AdvancedMarkerElement({
+            map,
+            position: position,
+            title: name,
+            gmpClickable: true,
+        });
+
+        // Klick-Event für spätere Nutzung
+        marker.addListener("click", () => {
+            alert(`Station: ${name}`);
+        });
+
+        // Marker zur Liste hinzufügen
+        weatherStationMarkers.push(marker);
+    });
+}
+
+
