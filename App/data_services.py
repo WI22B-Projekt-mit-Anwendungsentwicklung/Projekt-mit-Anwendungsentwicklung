@@ -100,7 +100,7 @@ def save_data_to_db():
             inhalt_datapoint = cursor.fetchall()
             if not inhalt_datapoint:
                 for station in inhalt_station:
-                    datapoints = dp.download_and_create_datapoints_local(station[1])
+                    datapoints = dp.download_and_create_datapoints(station[1])
                     foreign_key = station[0]
                     for datapoint in datapoints:
                         cursor.execute(
