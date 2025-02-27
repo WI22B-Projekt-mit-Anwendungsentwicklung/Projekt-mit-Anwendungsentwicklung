@@ -394,6 +394,7 @@ li {
     max-height: 0;
     overflow: hidden;
     transition: max-height 0.6s ease-out, padding 0.3s ease-out;
+    justify-content: center;
 }
 
 .station-data-div.open {
@@ -433,3 +434,32 @@ table th, table td {
 table th {
     background-color: var(--table-background-color); /* Header-Hintergrund */
 }
+
+
+.custom-marker {
+    position: relative;
+    width: 24px;
+    height: 24px;
+}
+
+.custom-tooltip {
+    position: absolute;
+    bottom: 30px; /* Abstand zum Marker */
+    left: 50%;
+    transform: translateX(-50%);
+    background: rgba(0, 0, 0, 0.75);
+    color: white;
+    padding: 5px 10px;
+    border-radius: 5px;
+    font-size: 12px;
+    white-space: nowrap;
+    display: none;
+    pointer-events: none;
+}
+
+/* Tooltip beim Hovern über den Marker sichtbar machen */
+.custom-marker:hover .custom-tooltip {
+    display: block;
+}
+
+

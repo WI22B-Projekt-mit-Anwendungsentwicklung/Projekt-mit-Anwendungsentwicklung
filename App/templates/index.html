@@ -13,8 +13,14 @@
         <p>Projekt mit Anwendungsentwicklung</p>
     </div>
     <div class="logo-div">
-        <img src="{{ url_for('static', filename='WXplore.png') }}" alt="Lgog" class="logo">
+        <img id="logo"
+             src="{{ url_for('static', filename='Logo_Light.png') }}"
+             alt="Logo"
+             class="logo"
+             data-light="{{ url_for('static', filename='Logo_Light.png') }}"
+             data-dark="{{ url_for('static', filename='Logo_Dark.png') }}">
     </div>
+
     <div class="toggleTheme-div">
         <span>Light</span>
         <label class="switch">
@@ -39,13 +45,15 @@
                 <!-- Longitude -->
                 <div class="input-group">
                     <h3>Longitude</h3>
-                    <input class="user-input" type="number" id="longitude" name="longitude" placeholder="e.g.: 8.677355612809267">
+                    <input class="user-input" type="number" id="longitude" name="longitude"
+                           placeholder="e.g.: 8.677355612809267">
                 </div>
 
                 <!-- Latitude -->
                 <div class="input-group">
                     <h3>Latitude</h3>
-                    <input class="user-input" type="number" id="latitude" name="latitude" placeholder="e.g.: 48.132247351247926">
+                    <input class="user-input" type="number" id="latitude" name="latitude"
+                           placeholder="e.g.: 48.132247351247926">
                 </div>
             </div>
 
@@ -79,7 +87,8 @@
                     <div class="station-box" data-value="5">5</div>
                     <div class="station-box" data-value="10">10</div>
                     <div class="station-box" data-value="20">20</div>
-                    <input class="user-input" type="number" id="stationsInput" name="stations" placeholder="Custom" min="0">
+                    <input class="user-input" type="number" id="stationsInput" name="stations" placeholder="Custom"
+                           min="0">
                 </div>
             </div>
 

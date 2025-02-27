@@ -7,11 +7,18 @@ const yearStartSlider = document.getElementById('yearStartSlider');
 const yearEndSlider = document.getElementById('yearEndSlider');
 const radius = document.getElementById('radius');
 const radiusSlider = document.getElementById('radiusSlider');
+const logo = document.getElementById("logo");
 
+// Hole die URLs aus den `data-` Attributen im HTML
+const lightLogo = logo.getAttribute("data-light");
+const darkLogo = logo.getAttribute("data-dark");
 
-toggle.addEventListener('change', () => {
-    body.classList.toggle('dark-mode', toggle.checked);
+toggle.addEventListener("change", () => {
+    body.classList.toggle("dark-mode", toggle.checked);
+    logo.src = toggle.checked ? darkLogo : lightLogo;
 });
+
+
 
 window.addEventListener('scroll', () => {
     if (window.scrollY > 0) { // Prüfen, ob die Seite gescrollt wurde
@@ -239,3 +246,18 @@ function createChart(data, titleSeason, stationID) {
         }
     });
 }
+
+function scrollToStation(stationID) {
+    let content = document.getElementById(`station-data-div-${stationID}`);
+
+    if (content) {
+        if (!content.classList.contains("open")) {
+            toggleContent(stationID);
+            getStationData(stationID);
+        }
+        content.scrollIntoView({ behavior: "smooth", block: "start" });
+    }
+}
+
+
+
