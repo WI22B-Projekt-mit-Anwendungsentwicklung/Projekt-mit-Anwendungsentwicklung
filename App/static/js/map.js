@@ -26,7 +26,6 @@ function addMarker() {
         return;
     }
 
-    // Falls bereits ein Marker existiert, entfernen
     if (currentMarker) {
         currentMarker.map = null;
     }
@@ -40,7 +39,7 @@ function addMarker() {
     currentMarker = new google.maps.marker.AdvancedMarkerElement({
         map,
         position: position,
-        content: createCustomMarker("#000000"), // Schwarzer Hauptmarker
+        content: createCustomMarker("#000000"),
         gmpClickable: true
     });
 
@@ -53,24 +52,32 @@ function addMarker() {
         map: map,
         center: position,
         radius: circleRadius,
+        clickable: true // Der Kreis ist nun klickbar!
     });
 
     map.setCenter(position);
     map.setZoom(8);
-}
 
+    // Falls in den Kreis geklickt wird, wird ein neuer Marker gesetzt
+    google.maps.event.addListener(currentCircle, "rightclick", (event) => {
+        handleRightClick(event.latLng);
+    });
+}
 
 function addRightClickListener() {
     map.addListener("rightclick", (event) => {
-        // Koordinaten in die Input-Felder schreiben
-        document.getElementById("latitude").value = event.latLng.lat();
-        document.getElementById("longitude").value = event.latLng.lng();
-
-        clearList();
-        clearWeatherStations();
-        addMarker();
-        getStations();
+        handleRightClick(event.latLng);
     });
+}
+
+function handleRightClick(latLng) {
+    document.getElementById("latitude").value = latLng.lat();
+    document.getElementById("longitude").value = latLng.lng();
+
+    clearList();
+    clearWeatherStations();
+    addMarker();
+    getStations();
 }
 
 function createCustomMarker(color = "#D32F2F") {
@@ -84,12 +91,11 @@ function createCustomMarker(color = "#D32F2F") {
     return markerDiv;
 }
 
-
 let weatherStationMarkers = [];
 
 function clearWeatherStations() {
     weatherStationMarkers.forEach(marker => marker.map = null);
-    weatherStationMarkers = []; // Liste leeren
+    weatherStationMarkers = [];
 }
 
 function addWeatherStations(stations) {

@@ -17,6 +17,10 @@ async function getStations() {
         stations: stations ? parseInt(stations) : -1  // 'stations' wird entweder als Zahl oder als -1 übergeben
     };
 
+    if (isNaN(parseFloat(latitude)) || isNaN(parseFloat(longitude))) {
+        return;
+    }
+
 
     try {
         const response = await fetch("http://localhost:8000/submit", {

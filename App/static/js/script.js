@@ -42,18 +42,24 @@ yearEndSlider.addEventListener('input', () => {
 });
 
 yearStart.addEventListener('blur', () => {
-    validateInput(yearStart, 1900, 2024, "Startjahr");
-    if (parseInt(yearStart.value) > parseInt(yearEnd.value)) {
-        alert("Das Startjahr darf nicht größer als das Endjahr sein.");
-        yearStart.value = 1900;
+    validateInput(yearStart, 1763, 2024, "Start year");
+    if (parseInt(yearStart.value) > parseInt(yearEnd.value) || isNaN(parseInt(yearStart.value))) {
+        alert("The start year cannot be greater than the end year.");
+        yearStart.value = 1763;
+    } else if (isNaN(parseInt(yearStart.value))) {
+        alert("Please enter a valid Start year.");
+        yearEnd.value = 1763;
     }
     yearStartSlider.value = yearStart.value;
 });
 
 yearEnd.addEventListener('blur', () => {
-    validateInput(yearEnd, 1900, 2024, "Endjahr");
+    validateInput(yearEnd, 1763, 2024, "End year");
     if (parseInt(yearEnd.value) < parseInt(yearStart.value)) {
-        alert("Das Endjahr darf nicht kleiner als das Startjahr sein.");
+        alert("The end year cannot be greater than the Start year.");
+        yearEnd.value = 2024;
+    } else if (isNaN(parseInt(yearEnd.value))) {
+        alert("Please enter a valid end year.");
         yearEnd.value = 2024;
     }
     yearEndSlider.value = yearEnd.value;
@@ -65,31 +71,25 @@ radiusSlider.addEventListener('input', () => {
 
 radius.addEventListener('blur', () => {
     validateInput(radius, 1, 100, "Radius");
+    if (isNaN(parseInt(radius.value))) {
+        alert("Please enter a valid radius.");
+        radius.value = 50;
+    }
     radiusSlider.value = radius.value;
 });
 
-document.getElementById("latitude").addEventListener('blur', function () {
-    validateInput(this, -90, 90, "Breitengrad");
-});
-
-document.getElementById("longitude").addEventListener('blur', function () {
-    validateInput(this, -180, 180, "Längengrad");
-});
-
 function validateInput(input, min, max, message) {
-    let value = parseFloat(input.value);
+    let value = parseInt(input.value);
 
     if (isNaN(value)) {
-        alert(`Bitte eine gültige Zahl für ${message} eingeben.`);
-        input.value = min;
         return;
     }
 
     if (value < min) {
-        alert(`${message} darf nicht kleiner als ${min} sein.`);
+        alert(`${message} cannot be less than ${min}.`);
         input.value = min;
     } else if (value > max) {
-        alert(`${message} darf nicht größer als ${max} sein.`);
+        alert(`${message} cannot be more than ${min}.`);
         input.value = max;
     }
 }
@@ -220,9 +220,15 @@ const predefinedColors = [
     'rgb(75, 192, 192)', 'rgb(153, 102, 255)', 'rgb(255, 159, 64)',
     'rgb(199, 199, 199)', 'rgb(83, 102, 255)', 'rgb(255, 99, 64)', 'rgb(99, 255, 132)'
 ];
+const charts = {}; // Speichert alle Charts nach Station-ID
 
 function createChart(data, titleSeason, stationID) {
     let ctx = document.getElementById(`station-data-chart-${stationID}`).getContext('2d');
+
+    // Falls für diese Station bereits ein Chart existiert, zerstöre ihn
+    if (charts[stationID]) {
+        charts[stationID].destroy();
+    }
 
     let datasets = data.map((column, index) => {
         let titleIndex = index + 1;
@@ -238,7 +244,7 @@ function createChart(data, titleSeason, stationID) {
         };
     });
 
-    new Chart(ctx, {
+    charts[stationID] = new Chart(ctx, {
         type: 'line',
         data: {
             datasets: datasets
@@ -283,6 +289,7 @@ function createChart(data, titleSeason, stationID) {
         }
     });
 }
+
 
 
 function scrollToStation(stationID) {
