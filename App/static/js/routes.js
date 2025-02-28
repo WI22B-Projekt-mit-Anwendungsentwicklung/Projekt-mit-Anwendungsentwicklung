@@ -33,9 +33,8 @@ async function getStations() {
 
         if (result.length > 0) {
             statioList.classList.remove("d-none");
-            console.log(result);
             createList(result, yearStart, yearEnd, titleSeason);
-            addWeatherStations(result)
+            addWeatherStations(result);
         } else {
             alert("No stations found. Please try again.");
             statioList.classList.add("d-none");

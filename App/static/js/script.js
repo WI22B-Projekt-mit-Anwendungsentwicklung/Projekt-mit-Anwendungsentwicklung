@@ -19,7 +19,6 @@ toggle.addEventListener("change", () => {
 });
 
 
-
 window.addEventListener('scroll', () => {
     if (window.scrollY > 0) { // Prüfen, ob die Seite gescrollt wurde
         header.classList.add('scrolled'); // Klasse hinzufügen
@@ -42,32 +41,58 @@ yearEndSlider.addEventListener('input', () => {
     yearEnd.value = yearEndSlider.value;
 });
 
-yearStart.addEventListener('input', () => {
-    const yearStartValue = parseInt(yearStart.value);
-    const yearEndValue = parseInt(yearEnd.value);
-
-    if (yearStartValue > yearEndValue) {
-        yearStart.value = yearEndValue; // Setze es auf die gültige Grenze
+yearStart.addEventListener('blur', () => {
+    validateInput(yearStart, 1900, 2024, "Startjahr");
+    if (parseInt(yearStart.value) > parseInt(yearEnd.value)) {
+        alert("Das Startjahr darf nicht größer als das Endjahr sein.");
+        yearStart.value = 1900;
     }
-    yearStartSlider.value = yearStart.value; // Slider entsprechend anpassen
+    yearStartSlider.value = yearStart.value;
 });
 
-yearEnd.addEventListener('input', () => {
-    const yearStartValue = parseInt(yearStart.value);
-    const yearEndValue = parseInt(yearEnd.value);
-
-    if (yearEndValue < yearStartValue) {
-        yearEnd.value = yearStartValue; // Setze es auf die gültige Grenze
+yearEnd.addEventListener('blur', () => {
+    validateInput(yearEnd, 1900, 2024, "Endjahr");
+    if (parseInt(yearEnd.value) < parseInt(yearStart.value)) {
+        alert("Das Endjahr darf nicht kleiner als das Startjahr sein.");
+        yearEnd.value = 2024;
     }
-    yearEndSlider.value = yearEnd.value; // Slider entsprechend anpassen
+    yearEndSlider.value = yearEnd.value;
 });
 
 radiusSlider.addEventListener('input', () => {
     radius.value = radiusSlider.value;
-})
-radius.addEventListener('input', () => {
+});
+
+radius.addEventListener('blur', () => {
+    validateInput(radius, 1, 100, "Radius");
     radiusSlider.value = radius.value;
-})
+});
+
+document.getElementById("latitude").addEventListener('blur', function () {
+    validateInput(this, -90, 90, "Breitengrad");
+});
+
+document.getElementById("longitude").addEventListener('blur', function () {
+    validateInput(this, -180, 180, "Längengrad");
+});
+
+function validateInput(input, min, max, message) {
+    let value = parseFloat(input.value);
+
+    if (isNaN(value)) {
+        alert(`Bitte eine gültige Zahl für ${message} eingeben.`);
+        input.value = min;
+        return;
+    }
+
+    if (value < min) {
+        alert(`${message} darf nicht kleiner als ${min} sein.`);
+        input.value = min;
+    } else if (value > max) {
+        alert(`${message} darf nicht größer als ${max} sein.`);
+        input.value = max;
+    }
+}
 
 
 const stationBoxes = document.querySelectorAll('.station-box');
@@ -189,7 +214,6 @@ function fillTable(data, stationID) {
     }
 }
 
-
 const colorMap = {};
 const predefinedColors = [
     'rgb(255, 99, 132)', 'rgb(54, 162, 235)', 'rgb(255, 206, 86)',
@@ -207,7 +231,7 @@ function createChart(data, titleSeason, stationID) {
         }
         return {
             label: titleSeason[titleIndex],
-            data: column.map(entry => ({x: entry[0], y: entry[1]})),
+            data: column.map(entry => ({ x: entry[0], y: entry[1] })),
             fill: false,
             borderColor: colorMap[titleSeason[titleIndex]],
             tension: 0.1
@@ -232,7 +256,7 @@ function createChart(data, titleSeason, stationID) {
                     },
                     ticks: {
                         callback: function (value) {
-                            return Math.round(value);
+                            return parseInt(value, 10);
                         }
                     }
                 },
@@ -242,10 +266,24 @@ function createChart(data, titleSeason, stationID) {
                         text: 'Temperature (°C)'
                     }
                 }
+            },
+            plugins: {
+                tooltip: {
+                    callbacks: {
+                        title: function (tooltipItems) {
+                            return parseInt(tooltipItems[0].parsed.x, 10);
+                        },
+                        label: function (tooltipItem) {
+                            let value = tooltipItem.parsed.y.toFixed(2);
+                            return `${tooltipItem.dataset.label}: ${value} °C`;
+                        }
+                    }
+                }
             }
         }
     });
 }
+
 
 function scrollToStation(stationID) {
     let content = document.getElementById(`station-data-div-${stationID}`);
