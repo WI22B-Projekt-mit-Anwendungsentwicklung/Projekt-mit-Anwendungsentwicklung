@@ -1,18 +1,18 @@
 import requests
 
 class Station:
-    def __init__(self, id: str, name: str, latitude: float, longitude: float, last_measure_tmax: int = 0, first_measure_tmax: int = 0,
-                 last_measure_tmin: int = 0, first_measure_tmin: int = 0):
+    def __init__(self, id: str, name: str, latitude: float, longitude: float, last_measure_tmax: int = 0,
+                 first_measure_tmax: int = 0, last_measure_tmin: int = 0, first_measure_tmin: int = 0):
         """
-        Erstellt eine Wetterstation.
+        Creates a weather station.
 
-        :param id: Die eindeutige ID der Station (str).
-        :param latitude: Die geografische Breite der Station (float).
-        :param longitude: Die geografische Länge der Station (float).
-        :param last_measure_tmax: Letztes Jahr der TMAX-Messung (int, optional).
-        :param first_measure_tmax: Erstes Jahr der TMAX-Messung (int, optional).
-        :param last_measure_tmin: Letztes Jahr der TMIN-Messung (int, optional).
-        :param first_measure_tmin: Erstes Jahr der TMIN-Messung (int, optional).
+        :param id: The unique ID of the station (str).
+        :param latitude: The geographical latitude of the station (float).
+        :param longitude: The geographical longitude of the station (float).
+        :param last_measure_tmax: Last year of the TMAX measurement (int, optional).
+        :param first_measure_tmax: First year of the TMAX measurement (int, optional).
+        :param last_measure_tmin: Last year of the TMIN measurement (int, optional).
+        :param first_measure_tmin: First year of the TMIN measurement (int, optional).
         """
         self.id = id
         self.name = name
@@ -25,9 +25,9 @@ class Station:
 
     def __repr__(self):
         """
-        Repräsentation der Station als String.
+        Representation of the station as a string.
 
-        :return: String-Repräsentation der Station.
+        :return: String representation of the station.
         """
         return (f"ID={self.id}, Name={self.name} latitude={self.latitude}, longitude={self.longitude}, "
                 f"measure tmax first/last={self.first_measure_tmax}/{self.last_measure_tmax},"
@@ -36,13 +36,14 @@ class Station:
 
 def load_stations_from_url(url_inventory: str, url_stations: str):
     """
-    Lädt die Stationsdaten von einer URL und erstellt eine Liste von Station-Objekten.
+    Loads the station data from a URL and creates a list of station objects.
 
-    :param url_inventory: Die URL der TXT-Datei mit dem Inventory.
-    :return: Eine Liste von Station-Objekten.
+    :param url_stations: The URL of the TXT file containing the station data.
+    :param url_inventory: The URL of the TXT file containing the inventory data.
+    :return: A list of station objects.
     """
 
-    print(f"Lade Inventory-Daten von {url_stations}...")
+    print(f"Loading data from {url_stations}...")
     response = requests.get(url_stations)
     print(f"Status-Code: {response.status_code}")
 
@@ -57,11 +58,11 @@ def load_stations_from_url(url_inventory: str, url_stations: str):
             station_name = row[41:71].strip()
             station_dict[station_id] = station_name
     else:
-        print(f"Fehler beim Abrufen der Datei: HTTP {response.status_code}")
+        print(f"Failed to load the file: HTTP {response.status_code}")
 
 
 
-    print(f"Lade Inventory-Daten von {url_inventory}...")
+    print(f"Loading data from {url_inventory}...")
     response = requests.get(url_inventory)
     print(f"Status-Code: {response.status_code}")
 
@@ -73,7 +74,7 @@ def load_stations_from_url(url_inventory: str, url_stations: str):
 
         latest_station_id = ""
 
-        station = Station(id="", name="", latitude=0, longitude=0) # Wird erstellt, damit "station" Variable existiert.
+        station = Station(id="", name="", latitude=0, longitude=0) # Created so "station" variable exists.
         stations.append(station)
 
         for row in content.splitlines():
@@ -97,7 +98,7 @@ def load_stations_from_url(url_inventory: str, url_stations: str):
                 station.last_measure_tmin = int(row[41:45])
         return stations
     else:
-        print(f"Fehler beim Abrufen der Datei: HTTP {response.status_code}")
+        print(f"Failed to load the file: HTTP {response.status_code}")
         return []
 
 
