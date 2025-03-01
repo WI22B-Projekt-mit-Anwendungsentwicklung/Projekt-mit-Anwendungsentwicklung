@@ -48,7 +48,7 @@ yearStart.addEventListener('blur', () => {
         yearStart.value = 1763;
     } else if (isNaN(parseInt(yearStart.value))) {
         alert("Please enter a valid Start year.");
-        yearEnd.value = 1763;
+        yearStart.value = 1763;
     }
     yearStartSlider.value = yearStart.value;
 });
