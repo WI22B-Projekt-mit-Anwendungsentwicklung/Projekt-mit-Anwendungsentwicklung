@@ -7,7 +7,10 @@ const yearStartSlider = document.getElementById('yearStartSlider');
 const yearEndSlider = document.getElementById('yearEndSlider');
 const radius = document.getElementById('radius');
 const radiusSlider = document.getElementById('radiusSlider');
+const stationBoxes = document.querySelectorAll('.station-box');
+const stationsInput = document.getElementById('stationsInput');
 const logo = document.getElementById("logo");
+
 
 // Hole die URLs aus den `data-` Attributen im HTML
 const lightLogo = logo.getAttribute("data-light");
@@ -78,6 +81,15 @@ radius.addEventListener('blur', () => {
     radiusSlider.value = radius.value;
 });
 
+stationsInput.addEventListener("blur", function () {
+    let value = this.value.trim();
+    if (!/^\d+$/.test(value) || parseInt(value) <= 0) {
+        alert("The number of stations must be a positive integer.");
+        this.value = null;
+    }
+});
+
+
 function validateInput(input, min, max, message) {
     let value = parseInt(input.value);
 
@@ -93,10 +105,6 @@ function validateInput(input, min, max, message) {
         input.value = max;
     }
 }
-
-
-const stationBoxes = document.querySelectorAll('.station-box');
-const stationsInput = document.getElementById('stationsInput');
 
 stationBoxes.forEach(box => {
     box.addEventListener('click', function () {
