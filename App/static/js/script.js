@@ -43,7 +43,7 @@ yearEndSlider.addEventListener('input', () => {
 
 yearStart.addEventListener('blur', () => {
     validateInput(yearStart, 1763, 2024, "Start year");
-    if (parseInt(yearStart.value) > parseInt(yearEnd.value) || isNaN(parseInt(yearStart.value))) {
+    if (parseInt(yearStart.value) > parseInt(yearEnd.value)) {
         alert("The start year cannot be greater than the end year.");
         yearStart.value = 1763;
     } else if (isNaN(parseInt(yearStart.value))) {
