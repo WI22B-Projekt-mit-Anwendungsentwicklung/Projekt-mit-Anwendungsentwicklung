@@ -43,11 +43,11 @@ yearEndSlider.addEventListener('input', () => {
 
 yearStart.addEventListener('blur', () => {
     validateInput(yearStart, 1763, 2024, "Start year");
-    if (parseInt(yearStart.value) > parseInt(yearEnd.value)) {
-        alert("The start year cannot be greater than the end year.");
+    if (isNaN(parseInt(yearStart.value)) || !/^-?\d{4}$/.test(yearStart.value)) {
+        alert("Start year must be a four-digit integer.");
         yearStart.value = 1763;
-    } else if (isNaN(parseInt(yearStart.value))) {
-        alert("Please enter a valid Start year.");
+    } else if (parseInt(yearStart.value) > parseInt(yearEnd.value)) {
+        alert("The start year cannot be greater than the end year.");
         yearStart.value = 1763;
     }
     yearStartSlider.value = yearStart.value;
@@ -55,11 +55,11 @@ yearStart.addEventListener('blur', () => {
 
 yearEnd.addEventListener('blur', () => {
     validateInput(yearEnd, 1763, 2024, "End year");
-    if (parseInt(yearEnd.value) < parseInt(yearStart.value)) {
-        alert("The end year cannot be greater than the Start year.");
+    if (isNaN(parseInt(yearEnd.value)) || !/^-?\d{4}$/.test(yearEnd.value)) {
+        alert("End year must be a four-digit integer.");
         yearEnd.value = 2024;
-    } else if (isNaN(parseInt(yearEnd.value))) {
-        alert("Please enter a valid end year.");
+    } else if (parseInt(yearEnd.value) < parseInt(yearStart.value)) {
+        alert("The end year cannot be greater than the start year.");
         yearEnd.value = 2024;
     }
     yearEndSlider.value = yearEnd.value;
@@ -71,8 +71,8 @@ radiusSlider.addEventListener('input', () => {
 
 radius.addEventListener('blur', () => {
     validateInput(radius, 1, 100, "Radius");
-    if (isNaN(parseInt(radius.value))) {
-        alert("Please enter a valid radius.");
+    if (isNaN(parseInt(radius.value)) || !/^\d+$/.test(radius.value)) {
+        alert("Please enter a valid integer for radius.");
         radius.value = 50;
     }
     radiusSlider.value = radius.value;
@@ -89,7 +89,7 @@ function validateInput(input, min, max, message) {
         alert(`${message} cannot be less than ${min}.`);
         input.value = min;
     } else if (value > max) {
-        alert(`${message} cannot be more than ${min}.`);
+        alert(`${message} cannot be more than ${max}.`);
         input.value = max;
     }
 }
