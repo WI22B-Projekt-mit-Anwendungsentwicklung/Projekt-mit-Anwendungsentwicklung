@@ -54,7 +54,7 @@ def haversine(lat1, lon1, lat2, lon2):
     :return: Distance in kilometers (float).
     """
 
-    r = 6378.14  # Radius of the earth
+    r = 6371  # Radius of the earth
 
     lat1, lon1, lat2, lon2 = map(radians, [lat1, lon1, lat2, lon2])
 
