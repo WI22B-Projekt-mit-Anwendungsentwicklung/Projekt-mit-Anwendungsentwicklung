@@ -85,7 +85,8 @@ def save_data_to_db():
                 for station in stations:
                     cursor.execute(
                         """
-                        INSERT INTO Station (station_id, station_name, latitude, longitude, first_tmax, latest_tmax, first_tmin, latest_tmin)
+                        INSERT INTO Station (station_id, station_name, latitude, longitude, first_tmax, latest_tmax, 
+                        first_tmin, latest_tmin)
                         VALUES (%s,%s, %s, %s, %s, %s, %s, %s);
                         """,
                         (station.id, station.name, station.latitude, station.longitude, station.first_measure_tmax,
@@ -106,7 +107,8 @@ def save_data_to_db():
                             INSERT INTO Datapoint (SID, year, month, tmax, tmin)
                             VALUES (%s, %s, %s, %s, %s);
                             """,
-                            (foreign_key, str(datapoint.date)[:4], str(datapoint.date)[-2:], datapoint.tmax, datapoint.tmin))
+                            (foreign_key, str(datapoint.date)[:4], str(datapoint.date)[-2:],
+                             datapoint.tmax, datapoint.tmin))
                 connection.commit()
             else:
                 print("Datapoint already filled.")
