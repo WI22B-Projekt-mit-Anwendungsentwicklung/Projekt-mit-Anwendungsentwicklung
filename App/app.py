@@ -6,10 +6,10 @@ from routes import init_routes
 app = Flask(__name__)
 CORS(app)
 
-# Routen registrieren
+# Register routes
 init_routes(app)
 
-# Initialisiere Datenbank, falls nötig
+# Initialize database, if needed
 ds.save_data_to_db()
 
 if __name__ == "__main__":

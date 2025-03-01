@@ -4,24 +4,24 @@ import os
 class DataPoint:
     def __init__(self, date: int, tmax: float, tmin: float, station: str = None):
         """
-        Erstellt einen Datenpunkt mit Datum, maximaler Temperatur, minimaler Temperatur und zugehöriger Stations-ID.
+        Creates a data point with date, maximum temperature, minimum temperature, and associated station ID.
 
-        :param date: Jahr+Monat im Format YYYYMM (z. B. 202401).
-        :param tmax: Die maximale Temperatur als Float.
-        :param tmin: Die minimale Temperatur als Float.
-        :param station: Die Stations-ID als String, der dieser Datenpunkt zugeordnet ist.
+        :param date: Year and month in the format YYYYMM (e.g., 202401).
+        :param tmax: The maximum temperature as a float.
+        :param tmin: The minimum temperature as a float.
+        :param station: The station ID as a string to which this data point belongs.
         """
 
         self.date = date
         self.tmax = tmax
         self.tmin = tmin
-        self.station = station  # Referenz einer Station
+        self.station = station
 
     def __repr__(self):
         """
-        Repräsentation des Datenpunkts als String.
+        Representation of the data point as a string.
 
-        :return: String-Repräsentation des Datenpunkts.
+        :return: String representation of the data point.
         """
 
         station_name = self.station if self.station else "None"
@@ -29,20 +29,19 @@ class DataPoint:
 
 def extract_average_value(line: str):
     """
-    Extrahiert die VALUE-Werte aus dem gegebenen String und berechnet den Durchschnitt.
+    Extracts the VALUE values from the given string and calculates the average.
 
-    :param line: Der gegebene String mit den Daten.
-    :return: Der Durchschnitt der VALUE-Werte.
+    :param line: The given string containing the data.
+    :return: The average of the VALUE values.
     """
-    # Leere Liste für die VALUE-Werte
+
     value_werte = []
 
-    # Schleife über die Startpositionen der VALUE-Felder (22, 30, 38, ..., 262)
-    for start in range(21, len(line), 8):  # Start ist 21, da Python 0-basiert ist
-        value_str = line[start:start + 5].strip()  # 5 Zeichen für die VALUE-Werte (z.B. ' 267')
+    # Loop over the starting position for the values (22, 30, 38, ..., 262)
+    for start in range(21, len(line), 8):
+        value_str = line[start:start + 5].strip()
 
         if value_str.isdigit() or (value_str.startswith('-') and value_str[1:].isdigit() and value_str != '-9999'):
-            # Wenn es eine gültige Zahl ist, konvertiere sie in eine Ganzzahl
             value_werte.append(int(value_str))
 
     if len(value_werte) > 0:
@@ -53,11 +52,12 @@ def extract_average_value(line: str):
 
 def download_and_create_datapoints(station_id: str):
     """
-    Lädt die Datei einer gegebenen Station-ID herunter, extrahiert die relevanten Zeilen und erstellt DataPoint-Objekte.
+    Downloads the file for a given station ID, extracts the relevant lines, and creates DataPoint objects.
 
-    :param station_id: Die Station-ID, um die Datei herunterzuladen (z. B. 'ACW00011604').
-    :return: Eine Liste von DataPoint-Objekten, die die extrahierten Temperaturen und das zugehörige Datum enthalten.
+    :param station_id: The station ID used to download the file (e.g., 'ACW00011604').
+    :return: A list of DataPoint objects containing the extracted temperatures and the associated date.
     """
+
     url = f"https://www1.ncdc.noaa.gov/pub/data/ghcn/daily/all/{station_id}.dly"
     response = requests.get(url)
     list_datapoints = []
@@ -65,23 +65,19 @@ def download_and_create_datapoints(station_id: str):
     if response.status_code == 200:
         file_name = f"{station_id}.dly"
 
-        # Datei speichern
         with open(file_name, 'wb') as file:
             file.write(response.content)
 
-        # Listen für Tmax und Tmin
         tmax_data = 0
         tmin_data = 0
 
-        # Jede Zeile der Datei durchgehen
         with open(file_name, 'r') as file:
             for line in file:
                 temp_element = line[17:21]
                 if len(line) > 21 and (temp_element == "TMAX" or temp_element == "TMIN"):
-                    # Extrahiere Datum (z.B. Jahr + Monat)
-                    current_date = int(line[11:17])  # Jahr + Monat (YYYYMM)
+                    # Extract date
+                    current_date = int(line[11:17])  # YYYYMM
 
-                    # Wenn es eine TMAX Zeile ist, hole die Temperaturdaten
                     if temp_element == "TMAX":
                         tmax_data = extract_average_value(line)
                     elif temp_element == "TMIN":
@@ -94,39 +90,36 @@ def download_and_create_datapoints(station_id: str):
                         tmax_data = 0
                         tmin_data = 0
 
-
-        # Datei nach der Verarbeitung löschen
         os.remove(file_name)
     else:
-        print(f"Fehler beim Herunterladen: HTTP {response.status_code}")
+        print(f"Failed to load the file: HTTP {response.status_code}")
 
     return list_datapoints
 
 def download_and_create_datapoints_local(station_id: str):
     """
-    Liest die Datei einer gegebenen Station-ID aus dem lokalen Verzeichnis,
-    extrahiert die relevanten Zeilen und erstellt DataPoint-Objekte.
+    Reads the file for a given station ID from the local directory,
+    extracts the relevant lines, and creates DataPoint objects.
 
-    :param station_id: Die Station-ID der Datei (z. B. 'ACW00011604').
-    :return: Eine Liste von DataPoint-Objekten, die die extrahierten Temperaturen und das zugehörige Datum enthalten.
+    :param station_id: The station ID of the file (e.g., 'ACW00011604').
+    :return: A list of DataPoint objects containing the extracted temperatures and the associated date.
     """
+
     file_path = f"/data/ghcnd_all/{station_id}.dly"
     list_datapoints = []
 
     if os.path.exists(file_path):
-        # Listen für Tmax und Tmin
+
         tmax_data = 0
         tmin_data = 0
 
-        # Datei auslesen
         with open(file_path, 'r') as file:
             for line in file:
                 line_17 = line[17:21]
                 if len(line) > 21 and (line_17 == "TMAX" or line_17 == "TMIN"):
-                    # Extrahiere Datum (z.B. Jahr + Monat)
-                    current_date = int(line[11:17])  # Jahr + Monat (YYYYMM)
 
-                    # Wenn es eine TMAX Zeile ist, hole die Temperaturdaten
+                    current_date = int(line[11:17])
+
                     if line_17 == "TMAX":
                         tmax_data = extract_average_value(line)
                     elif line_17 == "TMIN":
@@ -139,7 +132,7 @@ def download_and_create_datapoints_local(station_id: str):
                         tmax_data = 0
                         tmin_data = 0
     else:
-        print(f"Fehler: Datei {file_path} nicht gefunden.")
+        print(f"Error: File {file_path} not found.")
 
     return list_datapoints
 

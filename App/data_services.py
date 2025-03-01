@@ -11,24 +11,23 @@ dbconfig = {
     "database": "db"
 }
 
-# Initialisiere den Verbindungspool
+# Initialize connection pool
 connection_pool = pooling.MySQLConnectionPool(
     pool_name="mypool",
     pool_size=10,
     **dbconfig
 )
 
-# Stationen im Radius finden
 def find_stations_within_radius(stations, latitude, longitude, radius, max_stations):
     """
-    Findet alle Stationen innerhalb eines bestimmten Radius um eine gegebene Koordinate.
+    Finds all stations within a specified radius around a given coordinate.
 
-    :param stations: Liste der Stationen.
-    :param latitude: Geografische Breite des Mittelpunkts (float).
-    :param longitude: Geografische Länge des Mittelpunkts (float).
-    :param radius: Radius in Kilometern (float).
-    :param max_stations: Maximale Anzahl der Stationen.
-    :return: Liste der Stationen innerhalb des Radius.
+    :param stations: List of stations.
+    :param latitude: Geographical latitude of the center point (float).
+    :param longitude: Geographical longitude of the center point (float).
+    :param radius: Radius in kilometers (float).
+    :param max_stations: Maximum number of stations.
+    :return: List of stations within the radius.
     """
 
     result = []
@@ -44,36 +43,35 @@ def find_stations_within_radius(stations, latitude, longitude, radius, max_stati
 
     return sorted_result
 
-# Funktion zur Berechnung der Entfernung (Haversine-Formel)
 def haversine(lat1, lon1, lat2, lon2):
     """
-    Berechnet die Entfernung zwischen zwei Punkten auf der Erde in Kilometern.
+    Calculates the distance between two points on Earth in kilometers.
 
-    :param lat1: Breite des ersten Punkts (float).
-    :param lon1: Länge des ersten Punkts (float).
-    :param lat2: Breite des zweiten Punkts (float).
-    :param lon2: Länge des zweiten Punkts (float).
-    :return: Entfernung in Kilometern (float).
+    :param lat1: Latitude of the first point (float).
+    :param lon1: Longitude of the first point (float).
+    :param lat2: Latitude of the second point (float).
+    :param lon2: Longitude of the second point (float).
+    :return: Distance in kilometers (float).
     """
-    R = 6378.14  # Erdradius in Kilometern
 
-    # Koordinaten in Bogenmaß umrechnen
+    r = 6378.14  # Radius of the earth
+
     lat1, lon1, lat2, lon2 = map(radians, [lat1, lon1, lat2, lon2])
 
-    # Haversine-Formel
     dlat = lat2 - lat1
     dlon = lon2 - lon1
     a = sin(dlat / 2)**2 + cos(lat1) * cos(lat2) * sin(dlon / 2)**2
     c = 2 * atan2(sqrt(a), sqrt(1 - a))
-    return R * c
+    return r * c
 
 def save_data_to_db():
     """
-    Füllt die Tabellen "Station" und "Datapoint" in der Datenbank, falls sie leer sind,
-    indem Daten von einer externen URL geladen und eingefügt werden.
+    Populates the "Station" and "Datapoint" tables in the database if they are empty
+    by loading and inserting data from an external URL.
 
-    :return: Keine Rückgabe, führt Datenbankoperationen aus.
+    :return: No return value, performs database operations.
     """
+
     connection = connection_pool.get_connection()
     try:
         with connection.cursor() as cursor:
@@ -94,7 +92,7 @@ def save_data_to_db():
                          station.last_measure_tmax, station.first_measure_tmin, station.last_measure_tmin))
                 connection.commit()
             else:
-                print("Station bereits gefüllt")
+                print("Station already filled.")
 
             cursor.execute("SELECT * FROM Datapoint LIMIT 1;")
             inhalt_datapoint = cursor.fetchall()
@@ -111,25 +109,26 @@ def save_data_to_db():
                             (foreign_key, str(datapoint.date)[:4], str(datapoint.date)[-2:], datapoint.tmax, datapoint.tmin))
                 connection.commit()
             else:
-                print("Datapoint bereits gefüllt")
+                print("Datapoint already filled.")
     finally:
         cursor.close()
         connection.close()
 
 def get_stations_in_radius(latitude, longitude, radius, first_year, last_year, max_stations):
     """
-    Ruft Stationen ab, die sich innerhalb eines bestimmten Radius um die angegebene Position befinden
-    und Tmin/Tmax-Bedingungen für den Zeitraum erfüllen.
+    Retrieves stations located within a specified radius around the given position
+    that meet Tmin/Tmax conditions for the specified time period.
 
-    :param latitude: Breitengrad der Suchposition.
-    :param longitude: Längengrad der Suchposition.
-    :param radius: Suchradius in Kilometern.
-    :param first_year: Erstes Jahr des gesuchten Zeitraums.
-    :param last_year: Letztes Jahr des gesuchten Zeitraums.
-    :param max_stations: Maximale Anzahl zurückzugebender Stationen.
+    :param latitude: Latitude of the search position.
+    :param longitude: Longitude of the search position.
+    :param radius: Search radius in kilometers.
+    :param first_year: First year of the desired time period.
+    :param last_year: Last year of the desired time period.
+    :param max_stations: Maximum number of stations to return.
 
-    :return: Liste von Stationen mit ihren Entfernungen im Radius (z. B. [(station, distance)]).
+    :return: List of stations with their distances within the radius (e.g., [(station, distance)]).
     """
+
     connection = connection_pool.get_connection()
     try:
         with connection.cursor() as cursor:
@@ -154,22 +153,22 @@ def get_stations_in_radius(latitude, longitude, radius, first_year, last_year, m
 
 def get_datapoints_for_station(station_id, first_year, last_year):
     """
-    Ruft Datensätze zu Temperaturmittelwerten (Tmin und Tmax) einer Station ab,
-    gruppiert nach Jahr und Jahreszeiten.
+    Retrieves temperature average records (Tmin and Tmax) for a station,
+    grouped by year and seasons.
 
-    :param station_id: Name der Station.
-    :param first_year: Erstes Jahr des Zeitraums.
-    :param last_year: Letztes Jahr des Zeitraums.
+    :param station_id: Name of the station.
+    :param first_year: First year of the time period.
+    :param last_year: Last year of the time period.
 
-    :return: Liste mit 10 Datensätzen:
-             1. Jahresdurchschnitt Tmin
-             2. Jahresdurchschnitt Tmax
-             3. Frühling Tmin
-             4. Frühling Tmax
-             5. Sommer Tmin
-             6. Sommer Tmax
-             7. Herbst Tmin
-             8. Herbst Tmax
+    :return: List with 10 records (Northern hemisphere):
+             1. Annual average Tmin
+             2. Annual average Tmax
+             3. Spring Tmin
+             4. Spring Tmax
+             5. Summer Tmin
+             6. Summer Tmax
+             7. Autumn Tmin
+             8. Autumn Tmax
              9. Winter Tmin
             10. Winter Tmax
     """
@@ -183,7 +182,6 @@ def get_datapoints_for_station(station_id, first_year, last_year):
             sid = cursor.fetchall()
             station_id = sid[0][0]
 
-            # 1. Jahresdurchschnitt Tmin
             cursor.execute(
                 """
                 SELECT year,
@@ -212,7 +210,6 @@ def get_datapoints_for_station(station_id, first_year, last_year):
                 (station_id, first_year, last_year))
             ten_datasets.append(cursor.fetchall())
 
-            # Jahresdurchschnitt Tmax
             cursor.execute(
                 """
                 SELECT year,
@@ -241,7 +238,6 @@ def get_datapoints_for_station(station_id, first_year, last_year):
                 (station_id, first_year, last_year))
             ten_datasets.append(cursor.fetchall())
 
-            # 3-8. Jährliche Mittelwerte für Tmin und Tmax in den Jahreszeiten Frühling, Sommer, Herbst
             seasons = {
                 "spring": (3, 5),
                 "summer": (6, 8),
@@ -249,7 +245,7 @@ def get_datapoints_for_station(station_id, first_year, last_year):
             }
 
             for season, (start_month, end_month) in seasons.items():
-                # Tmin
+
                 cursor.execute(
                     """
                     SELECT year,
@@ -279,7 +275,7 @@ def get_datapoints_for_station(station_id, first_year, last_year):
                     (station_id, start_month, end_month, first_year, last_year))
                 ten_datasets.append(cursor.fetchall())
 
-                # Tmax
+
                 cursor.execute(
                     """
                     SELECT year,
@@ -309,7 +305,6 @@ def get_datapoints_for_station(station_id, first_year, last_year):
                     (station_id, start_month, end_month, first_year, last_year))
                 ten_datasets.append(cursor.fetchall())
 
-            # 9. Jährlicher Mittelwert der Temperaturminima im Winter (Dez-Vorjahr + Jan+Feb)
             cursor.execute(
                 """
                 SELECT winter_year,
@@ -340,7 +335,6 @@ def get_datapoints_for_station(station_id, first_year, last_year):
                 (station_id, first_year, last_year))
             ten_datasets.append(cursor.fetchall())
 
-            # 10. Jährlicher Mittelwert der Temperaturmaxima im Winter (Dez-Vorjahr + Jan+Feb)
             cursor.execute(
                 """
                 SELECT winter_year,
