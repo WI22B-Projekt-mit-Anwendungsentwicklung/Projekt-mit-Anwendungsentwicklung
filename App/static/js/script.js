@@ -10,9 +10,6 @@ const radiusSlider = document.getElementById('radiusSlider');
 const stationBoxes = document.querySelectorAll('.station-box');
 const stationsInput = document.getElementById('stationsInput');
 const logo = document.getElementById("logo");
-
-
-// Hole die URLs aus den `data-` Attributen im HTML
 const lightLogo = logo.getAttribute("data-light");
 const darkLogo = logo.getAttribute("data-dark");
 
@@ -21,12 +18,11 @@ toggle.addEventListener("change", () => {
     logo.src = toggle.checked ? darkLogo : lightLogo;
 });
 
-
 window.addEventListener('scroll', () => {
-    if (window.scrollY > 0) { // Prüfen, ob die Seite gescrollt wurde
-        header.classList.add('scrolled'); // Klasse hinzufügen
+    if (window.scrollY > 0) {
+        header.classList.add('scrolled');
     } else {
-        header.classList.remove('scrolled'); // Klasse entfernen
+        header.classList.remove('scrolled');
     }
 });
 
@@ -89,14 +85,11 @@ stationsInput.addEventListener("blur", function () {
     }
 });
 
-
 function validateInput(input, min, max, message) {
     let value = parseInt(input.value);
-
     if (isNaN(value)) {
         return;
     }
-
     if (value < min) {
         alert(`${message} cannot be less than ${min}.`);
         input.value = min;
@@ -108,18 +101,12 @@ function validateInput(input, min, max, message) {
 
 stationBoxes.forEach(box => {
     box.addEventListener('click', function () {
-        // Entferne die "selected"-Klasse von allen Kästchen
         stationBoxes.forEach(b => b.classList.remove('selected'));
-
-        // Markiere das ausgewählte Kästchen
         this.classList.add('selected');
-
-        // Setze den Wert ins Input-Feld
         stationsInput.value = this.dataset.value;
     });
 });
 
-// Falls der Nutzer das Input-Feld manuell nutzt, entferne die Auswahl aus den Kästchen
 stationsInput.addEventListener('input', function () {
     stationBoxes.forEach(b => b.classList.remove('selected'));
 });
@@ -128,12 +115,11 @@ function createList(stations, yearStart, yearEnd, titleSeason) {
     clearList();
     if (stations.length !== 0) {
         stations.forEach(station => {
-            addStation(station, yearStart, yearEnd, titleSeason); // Station zur Liste hinzufügen
+            addStation(station, yearStart, yearEnd, titleSeason);
         });
     } else {
         console.log("Keine Einträge vorhanden.");
     }
-
 }
 
 function addStation(station, yearStart, yearEnd, titleSeason) {
@@ -142,7 +128,6 @@ function addStation(station, yearStart, yearEnd, titleSeason) {
     for (let year = yearStart; year <= yearEnd; year++) {
         tableRowsHTML += `<tr><td>${year}</td>` + '<td></td>'.repeat(10) + '</tr>';
     }
-
     let liHTMLContent = `
     <div class="list-entry">
         <div class="list-item">
@@ -192,7 +177,6 @@ function clearList() {
 function toggleContent(stationID) {
     let content = document.getElementById(`station-data-div-${stationID}`);
     let arrow = document.getElementById(`arrow-${stationID}`);
-
     content.classList.toggle('open');
     arrow.classList.toggle('rotated');
 }
@@ -209,7 +193,6 @@ function fillTable(data, stationID) {
         let year = parseInt(rows[i].cells[0].textContent);
         yearIndexMap[year] = i;
     }
-
     for (let col = 0; col < data.length; col++) {
         let columnData = data[col];
         for (let i = 0; i < columnData.length; i++) {
@@ -228,16 +211,13 @@ const predefinedColors = [
     'rgb(75, 192, 192)', 'rgb(153, 102, 255)', 'rgb(255, 159, 64)',
     'rgb(199, 199, 199)', 'rgb(83, 102, 255)', 'rgb(255, 99, 64)', 'rgb(99, 255, 132)'
 ];
-const charts = {}; // Speichert alle Charts nach Station-ID
+const charts = {};
 
 function createChart(data, titleSeason, stationID) {
     let ctx = document.getElementById(`station-data-chart-${stationID}`).getContext('2d');
-
-    // Falls für diese Station bereits ein Chart existiert, zerstöre ihn
     if (charts[stationID]) {
         charts[stationID].destroy();
     }
-
     let datasets = data.map((column, index) => {
         let titleIndex = index + 1;
         if (!colorMap[titleSeason[titleIndex]]) {
@@ -251,7 +231,6 @@ function createChart(data, titleSeason, stationID) {
             tension: 0.1
         };
     });
-
     charts[stationID] = new Chart(ctx, {
         type: 'line',
         data: {
@@ -302,7 +281,6 @@ function createChart(data, titleSeason, stationID) {
 
 function scrollToStation(stationID) {
     let content = document.getElementById(`station-data-div-${stationID}`);
-
     if (content) {
         if (!content.classList.contains("open")) {
             toggleContent(stationID);
