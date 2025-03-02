@@ -172,7 +172,6 @@ header div {
     justify-content: center;
 }
 
-/* Formular-Bereich */
 .form-div {
     width: 30%;
     display: flex;
@@ -182,14 +181,13 @@ header div {
 
 .form-container {
     width: 100%;
-    max-width: 400px; /* Maximale Breite des Formulars */
+    max-width: 400px;
     text-align: center;
     display: flex;
     flex-direction: column;
-    gap: 20px; /* Abstand zwischen den Zeilen */
+    gap: 20px;
 }
 
-/* Form-Zeilen */
 .form-row {
     display: flex;
     flex-direction: column;
@@ -202,16 +200,15 @@ header div {
     display: flex;
     flex-direction: row;
     justify-content: space-between;
-    gap: 20px; /* Abstand zwischen Longitude und Latitude */
+    gap: 20px;
     width: 100%;
 }
 
-/* Nebeneinander-Anordnung von Longitude und Latitude Gruppen */
 .input-group {
     display: flex;
-    flex-direction: column; /* Titel (Label) und Input untereinander */
-    align-items: center; /* Inhalt zentriert untereinander */
-    flex: 1; /* Nimmt gleichmäßigen Platz ein */
+    flex-direction: column;
+    align-items: center;
+    flex: 1;
 }
 
 .radius-div {
@@ -235,7 +232,6 @@ header div {
     text-align: left;
 }
 
-/* Range-Slider und Eingabe daneben */
 .year-range-div {
     display: flex;
     justify-content: space-between;
@@ -319,7 +315,6 @@ header div {
     color: white;
 }
 
-/* Button */
 .search-button {
     background-color: var(--wxBlue);
     color: var(--button-text-color);
@@ -343,7 +338,6 @@ header div {
     display: flex;
 }
 
-/* Unterer Container: Weather Stations */
 .stations-list {
     justify-content: center;
     align-items: center;
@@ -355,7 +349,7 @@ header div {
     box-shadow: var(--box-shadow);
 }
 
-.stations-list-title{
+.stations-list-title {
     text-align: center;
 }
 
@@ -392,7 +386,7 @@ li {
 }
 
 .toggle-arrow {
-    width: 20px;  /* Automatische Anpassung */
+    width: 20px;
     height: auto;
     cursor: pointer;
     transition: transform 0.3s ease-in-out;
@@ -418,10 +412,10 @@ li {
 .station-data-content {
     background-color: var(--box-background-color);
     border-radius: 10px;
-    overflow: auto; /* Scrollbars für den Tabellen-Container */
-    border: 1px solid #ccc; /* Optional für bessere Sichtbarkeit */
-    padding: 10px; /* Innerer Abstand */
-    box-sizing: border-box; /* Sorgt dafür, dass die Innenräume korrekt berechnet werden */
+    overflow: auto;
+    border: 1px solid #ccc;
+    padding: 10px;
+    box-sizing: border-box;
 }
 
 .table-div {
@@ -434,18 +428,18 @@ li {
 }
 
 table {
-    width: 100%; /* Tabelle füllt den Container */
-    border-collapse: collapse; /* Benachbarte Zellen teilen sich Rahmen */
+    width: 100%;
+    border-collapse: collapse;
 }
 
 table th, table td {
-    border: 1px solid #ddd; /* Rahmen für Zellen */
-    padding: 8px; /* Innenabstand */
-    text-align: center; /* Inhalt zentrieren */
+    border: 1px solid #ddd;
+    padding: 8px;
+    text-align: center;
 }
 
 table th {
-    background-color: var(--table-background-color); /* Header-Hintergrund */
+    background-color: var(--table-background-color);
 }
 
 
@@ -457,7 +451,7 @@ table th {
 
 .custom-tooltip {
     position: absolute;
-    bottom: 30px; /* Abstand zum Marker */
+    bottom: 30px;
     left: 50%;
     transform: translateX(-50%);
     background: rgba(0, 0, 0, 0.75);
@@ -470,7 +464,6 @@ table th {
     pointer-events: none;
 }
 
-/* Tooltip beim Hovern über den Marker sichtbar machen */
 .custom-marker:hover .custom-tooltip {
     display: block;
 }

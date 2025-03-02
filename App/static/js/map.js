@@ -6,7 +6,7 @@ let weatherStationMarkers = [];
 async function initMap() {
     map = new google.maps.Map(document.getElementById("map"), {
         zoom: 5,
-        center: { lat: 48.132247351247926, lng: 8.677355612809267 },
+        center: {lat: 48.132247351247926, lng: 8.677355612809267},
         mapTypeId: google.maps.MapTypeId.TERRAIN,
         mapId: "WXPlore_Map",
         disableDefaultUI: true
@@ -32,7 +32,7 @@ function addMarker() {
         currentCircle.setMap(null);
     }
     let circleRadius = parseFloat(document.getElementById("radius").value) * 1000;
-    const position = { lat: latitude, lng: longitude };
+    const position = {lat: latitude, lng: longitude};
     currentMarker = new google.maps.marker.AdvancedMarkerElement({
         map,
         position: position,
@@ -100,7 +100,7 @@ function addWeatherStations(stations) {
         const name = station[0][1];
         const lat = station[0][2];
         const lng = station[0][3];
-        const position = { lat, lng };
+        const position = {lat, lng};
         const markerDiv = document.createElement("div");
         markerDiv.classList.add("custom-marker");
         markerDiv.innerHTML = `

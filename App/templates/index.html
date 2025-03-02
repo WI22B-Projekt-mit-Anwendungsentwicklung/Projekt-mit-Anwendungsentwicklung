@@ -4,7 +4,6 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>WXplore</title>
-    <!-- CSS einbinden -->
     <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
 </head>
 <body>
@@ -20,7 +19,6 @@
              data-light="{{ url_for('static', filename='Logo_Light.png') }}"
              data-dark="{{ url_for('static', filename='Logo_Dark.png') }}">
     </div>
-
     <div class="toggleTheme-div">
         <span>Light</span>
         <label class="switch">
@@ -30,34 +28,25 @@
         <span>Dark</span>
     </div>
 </header>
-
 <div class="input-div">
     <div class="map-div" id="map">
         <span>Loading Map...</span>
     </div>
     <div class="form-div">
         <div class="form-container">
-            <!-- Titel -->
             <h2 class="form-title">Please Enter Your Data</h2>
-
-            <!-- 1. Zeile: Longitude und Latitude -->
             <div class="form-row longitude-latitude">
-                <!-- Latitude -->
                 <div class="input-group">
                     <h3>Latitude</h3>
                     <input class="user-input latLong-input" type="number" id="latitude" name="latitude"
                            placeholder="e.g.: 48,132247351247926" min="-90" max="90">
                 </div>
-
-                <!-- Longitude -->
                 <div class="input-group">
                     <h3>Longitude</h3>
                     <input class="user-input latLong-input" type="number" id="longitude" name="longitude"
                            placeholder="e.g.: 8,677355612809267" min="-180" max="180">
                 </div>
             </div>
-
-            <!-- 2. Zeile: Radius-Eingabe -->
             <div class="form-row">
                 <h3>Search Radius</h3>
                 <div class="radius-div">
@@ -66,8 +55,6 @@
                     <p>km</p>
                 </div>
             </div>
-
-            <!-- 3. Zeile: Year Range -->
             <div class="form-row">
                 <h3>Year Range</h3>
                 <div class="year-range-div">
@@ -79,8 +66,6 @@
                     <input class="user-input" type="number" id="yearEnd" min="1763" max="2024" value="2004" step="1">
                 </div>
             </div>
-
-            <!-- 4. Zeile: Anzahl der Stationen -->
             <div class="form-row">
                 <h3>Max. Number of Stations</h3>
                 <div class="stations-selection">
@@ -91,17 +76,15 @@
                            min="0">
                 </div>
             </div>
-
-            <!-- 5. Zeile: Search Button -->
             <div class="form-row">
-                <button type="button" class="search-button" onclick="clearList(); clearWeatherStations(); addMarker(); getStations()">
+                <button type="button" class="search-button"
+                        onclick="clearList(); clearWeatherStations(); addMarker(); getStations()">
                     Search Weather Stations
                 </button>
             </div>
         </div>
     </div>
 </div>
-
 <div class="stations-container d-none" id="stationList">
     <div class="stations-list">
         <div class="stations-list-title">
@@ -118,19 +101,13 @@
         <ul id="stationsList"></ul>
     </div>
 </div>
-<!-- map.js -->
 <script src="{{url_for('static', filename='js/map.js')}}"></script>
-<!-- script.js -->
 <script src="{{url_for('static', filename='js/script.js')}}"></script>
-<!-- routes.js -->
 <script src="{{url_for('static', filename='js/routes.js')}}"></script>
-<!-- Google Maps API mit Callback auf initMap -->
 <script async
         src="https://maps.googleapis.com/maps/api/js?key=AIzaSyBmgMa1SuYTka5RbQBGvSlgi02QCRcv3_k&loading=async&callback=initMap&v=weekly&libraries=marker">
 </script>
-<!-- chart.js -->
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-
 </body>
 </html>
 

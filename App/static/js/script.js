@@ -225,7 +225,7 @@ function createChart(data, titleSeason, stationID) {
         }
         return {
             label: titleSeason[titleIndex],
-            data: column.map(entry => ({ x: entry[0], y: entry[1] })),
+            data: column.map(entry => ({x: entry[0], y: entry[1]})),
             fill: false,
             borderColor: colorMap[titleSeason[titleIndex]],
             tension: 0.1
@@ -278,7 +278,6 @@ function createChart(data, titleSeason, stationID) {
 }
 
 
-
 function scrollToStation(stationID) {
     let content = document.getElementById(`station-data-div-${stationID}`);
     if (content) {
@@ -286,7 +285,7 @@ function scrollToStation(stationID) {
             toggleContent(stationID);
             getStationData(stationID);
         }
-        content.scrollIntoView({ behavior: "smooth", block: "start" });
+        content.scrollIntoView({behavior: "smooth", block: "start"});
     }
 }
 
