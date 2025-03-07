@@ -1,5 +1,6 @@
 services:
   flask:
+    image: ghcr.io/wi22b/windy-weasel:latest
     build: ./app/
     container_name: windy-weasel
 #    volumes:
@@ -14,6 +15,7 @@ services:
     restart: on-failure
 
   mysql:
+    image: ghcr.io/wi22b/gusty-gorilla:latest
     build: ./mysql/
     container_name: gusty-gorilla
     restart: always
