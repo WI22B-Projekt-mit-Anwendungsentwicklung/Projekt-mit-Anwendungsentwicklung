@@ -143,7 +143,7 @@ function addStation(station, yearStart, yearEnd, titleSeason) {
             <p>${station[0][3]}</p>
         </div>
         <div class="list-item">
-            <p>${station[1].toFixed(2)} km</p>
+            <p>${station[1].toFixed(1)} km</p>
         </div>
         <div class="list-item arrow-div">
             <img src="/static/arrow.png" class="toggle-arrow" id="arrow-${station[0][0]}" 
@@ -199,7 +199,7 @@ function fillTable(data, stationID) {
             let [year, value] = columnData[i];
             if (yearIndexMap.hasOwnProperty(year)) {
                 let rowIndex = yearIndexMap[year];
-                rows[rowIndex].cells[col + 1].textContent = value.toFixed(2);
+                rows[rowIndex].cells[col + 1].textContent = value.toFixed(1);
             }
         }
     }
@@ -207,30 +207,53 @@ function fillTable(data, stationID) {
 
 const colorMap = {};
 const predefinedColors = [
-    'rgb(255, 99, 132)', 'rgb(54, 162, 235)', 'rgb(255, 206, 86)',
-    'rgb(75, 192, 192)', 'rgb(153, 102, 255)', 'rgb(255, 159, 64)',
-    'rgb(199, 199, 199)', 'rgb(83, 102, 255)', 'rgb(255, 99, 64)', 'rgb(99, 255, 132)'
+    'rgb(191,191,191)', 'rgb(0,0,255)', 'rgb(255,0,0)',
+    'rgb(61,145,1)', 'rgb(173,255,139)', 'rgb(255,124,0)',
+    'rgb(255,154,82)', 'rgb(112,53,0)', 'rgb(124,99,84)', 'rgb(131,131,131)'
 ];
 const charts = {};
+
 
 function createChart(data, titleSeason, stationID) {
     let ctx = document.getElementById(`station-data-chart-${stationID}`).getContext('2d');
     if (charts[stationID]) {
         charts[stationID].destroy();
     }
+
+    let allYears = new Set();
+    data.forEach(column => column.forEach(entry => allYears.add(entry[0])));
+    let minYear = Math.min(...allYears);
+    let maxYear = Math.max(...allYears);
+
+    let fullYearRange = Array.from({ length: maxYear - minYear + 1 }, (_, i) => minYear + i);
+
     let datasets = data.map((column, index) => {
         let titleIndex = index + 1;
         if (!colorMap[titleSeason[titleIndex]]) {
             colorMap[titleSeason[titleIndex]] = predefinedColors[titleIndex % predefinedColors.length];
         }
+
+        let dataMap = new Map(column.map(entry => [entry[0], entry[1]]));
+
+        let filledData = fullYearRange.map(year => ({
+            x: year,
+            y: dataMap.has(year) ? dataMap.get(year) : null
+        }));
+
         return {
             label: titleSeason[titleIndex],
-            data: column.map(entry => ({x: entry[0], y: entry[1]})),
+            data: filledData,
             fill: false,
             borderColor: colorMap[titleSeason[titleIndex]],
-            tension: 0.1
+            tension: 0.1,
+            spanGaps: false,
+            hidden: index >= 2,
+            segment: {
+                borderDash: ctx => ctx.p0.skip || ctx.p1.skip ? [5, 5] : undefined
+            }
         };
     });
+
     charts[stationID] = new Chart(ctx, {
         type: 'line',
         data: {
@@ -267,7 +290,7 @@ function createChart(data, titleSeason, stationID) {
                             return parseInt(tooltipItems[0].parsed.x, 10);
                         },
                         label: function (tooltipItem) {
-                            let value = tooltipItem.parsed.y.toFixed(2);
+                            let value = tooltipItem.parsed.y !== null ? tooltipItem.parsed.y.toFixed(1) : 'No Data';
                             return `${tooltipItem.dataset.label}: ${value} °C`;
                         }
                     }
@@ -276,7 +299,6 @@ function createChart(data, titleSeason, stationID) {
         }
     });
 }
-
 
 function scrollToStation(stationID) {
     let content = document.getElementById(`station-data-div-${stationID}`);

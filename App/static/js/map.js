@@ -5,8 +5,8 @@ let weatherStationMarkers = [];
 
 async function initMap() {
     map = new google.maps.Map(document.getElementById("map"), {
-        zoom: 5,
-        center: {lat: 48.132247351247926, lng: 8.677355612809267},
+        zoom: 6,
+        center: {lat: -53, lng: -70.967},
         mapTypeId: google.maps.MapTypeId.TERRAIN,
         mapId: "WXPlore_Map",
         disableDefaultUI: true
