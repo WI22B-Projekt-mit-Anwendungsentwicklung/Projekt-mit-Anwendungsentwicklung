@@ -74,6 +74,8 @@ def save_data_to_db():
     """
 
     connection = connection_pool.get_connection()
+    connection.autocommit = True
+    
     try:
         with connection.cursor() as cursor:
 
