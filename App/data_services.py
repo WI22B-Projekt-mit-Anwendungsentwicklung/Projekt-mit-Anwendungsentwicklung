@@ -1,6 +1,7 @@
 from math import radians, sin, cos, atan2, sqrt
 import station as st
 import datapoint as dp
+import time
 from mysql.connector import pooling
 
 dbconfig = {
@@ -94,6 +95,9 @@ def save_data_to_db():
                 connection.commit()
             else:
                 print("Station already filled.")
+
+            connection.commit()
+            time.sleep(3)
 
             cursor.execute("SELECT * FROM Datapoint LIMIT 1;")
             inhalt_datapoint = cursor.fetchall()
