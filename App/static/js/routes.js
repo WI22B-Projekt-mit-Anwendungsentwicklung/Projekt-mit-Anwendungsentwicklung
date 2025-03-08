@@ -67,7 +67,6 @@ async function getStationData(stationID) {
                 "Winter Tmin", "Winter Tmax", "Spring Tmin", "Spring Tmax", "Summer Tmin", "Summer Tmax"];
         }
         fillTable(result, stationID);
-        console.log(result);
         createChart(result, titleSeason, stationID);
     } catch (error) {
         console.error("Fehler beim Senden der Daten:", error);
