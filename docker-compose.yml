@@ -4,7 +4,7 @@ services:
     container_name: windy-weasel
 #    volumes:
 #      - /Users/lukasschick/Documents/ghcnd_all:/data
-#      - /path/to/local/ghcn-file:/data
+#      - /path/to/local/ghcn_all:/data
     command: sh -c "python3 ./app.py"
     ports:
       - "8000:8000"
