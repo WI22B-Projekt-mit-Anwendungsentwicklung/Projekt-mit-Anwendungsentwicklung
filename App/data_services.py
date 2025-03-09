@@ -98,6 +98,10 @@ def save_data_to_db():
                         (station.id, station.name, station.latitude, station.longitude, station.first_measure_tmax,
                          station.last_measure_tmax, station.first_measure_tmin, station.last_measure_tmin))
                 connection.commit()
+
+                cursor.execute("SELECT * FROM Station;")
+                inhalt_station = cursor.fetchall()
+                
             else:
                 print("Station already filled.")
 
