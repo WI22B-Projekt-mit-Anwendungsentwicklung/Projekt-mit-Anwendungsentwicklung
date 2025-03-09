@@ -4,6 +4,9 @@ import datapoint as dp
 import time
 from mysql.connector import pooling
 
+# Wait to make sure MYSQL DB is running
+time.sleep(10)
+
 dbconfig = {
     "user": "root",
     "password": "root",
@@ -73,8 +76,8 @@ def save_data_to_db():
     :return: No return value, performs database operations.
     """
 
+    inhalt_station = []
     connection = connection_pool.get_connection()
-    connection.autocommit = True
     
     try:
         with connection.cursor() as cursor:
@@ -98,12 +101,9 @@ def save_data_to_db():
             else:
                 print("Station already filled.")
 
-            connection.commit()
-            time.sleep(3)
-
             cursor.execute("SELECT * FROM Datapoint LIMIT 1;")
             inhalt_datapoint = cursor.fetchall()
-            print(inhalt_datapoint)
+
             if not inhalt_datapoint:
                 for station in inhalt_station:
                     datapoints = dp.download_and_create_datapoints(station[1])
