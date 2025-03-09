@@ -206,15 +206,25 @@ function fillTable(data, stationID) {
 }
 
 const colorMap = {};
-const predefinedColors = [
+const predefinedColorsNorth = [
     'rgb(191,191,191)', 'rgb(0,0,255)', 'rgb(255,0,0)',
     'rgb(61,145,1)', 'rgb(173,255,139)', 'rgb(255,124,0)',
     'rgb(255,154,82)', 'rgb(112,53,0)', 'rgb(124,99,84)', 'rgb(131,131,131)'
 ];
+const predefinedColorsSouth = [
+    'rgb(255,154,82)', 'rgb(0,0,255)', 'rgb(255,0,0)',
+    'rgb(112,53,0)', 'rgb(124,99,84)', 'rgb(131,131,131)',
+    'rgb(191,191,191)', 'rgb(61,145,1)', 'rgb(173,255,139)', 'rgb(255,124,0)'
+]
+
 const charts = {};
 
 
-function createChart(data, titleSeason, stationID) {
+function createChart(data, titleSeason, stationID, latitude) {
+    let predefinedColors = predefinedColorsNorth;
+    if (latitude < 0){
+        predefinedColors = predefinedColorsSouth;
+    }
     let ctx = document.getElementById(`station-data-chart-${stationID}`).getContext('2d');
     if (charts[stationID]) {
         charts[stationID].destroy();
