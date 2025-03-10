@@ -38,8 +38,8 @@ def test_datapoint_repr():
 
 def test_extract_average_value():
     # Testfall 1: Normalfall mit positiven Werten
-    line1 = "AQC00914141201908PRCP    5  7    0  7    0  7    0  7  135  -9999  "
-    assert extract_average_value(line1) == 18.67, f"Fehler: Erwartet 18.67, erhalten {extract_average_value(line1)}"
+    line1 = "AQC00914141201908PRCP    5  7    0  7    0  7    0  7  135  7   69  7    0  7    0  7    0  7    0  7    0  7   97  7    3  7    0  7    0  7  696  7    0  7    0  7  312  7    0  7    0  7    0  7    0  7    0  7    0  7  132  7    0  7    0  7    0  7   10  7   51  7"
+    assert extract_average_value(line1) == 4.9, f"Fehler: Erwartet 4.9, erhalten {extract_average_value(line1)}"
 
     # Testfall 2: Nur ein gültiger Wert
     line2 = "AQC00914141201908PRCP    -9999  200    -9999  -9999    -9999  -9999    -9999  -9999  -9999  -9999  "
