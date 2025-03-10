@@ -135,7 +135,3 @@ def download_and_create_datapoints_local(station_id: str):
         print(f"Error: File {file_path} not found.")
 
     return list_datapoints
-
-
-if __name__ == "__main__":
-    print(download_and_create_datapoints_local("AGE00147711"))
