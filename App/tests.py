@@ -76,7 +76,7 @@ ACW00011604194901TMIN  217  X  228  X  222  X  233  X  222  X
 """
        )
 @patch("os.remove")  # Mock os.remove, damit keine Datei gelöscht wird
-@patch("data_services.extract_average_value")
+@patch("datapoint.extract_average_value")
 def test_download_and_create_datapoints(mock_extract_avg, mock_os_remove, mock_open, mock_requests_get):
     # Mock die HTTP-Antwort mit Beispiel-Bytes für die Datei
     mock_requests_get.return_value = MagicMock(status_code=200, content=b"Dummy Data")
