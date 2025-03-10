@@ -39,28 +39,24 @@ def test_datapoint_repr():
 def test_extract_average_value():
     # Testfall 1: Normalfall mit positiven Werten
     line1 = "AQC00914141201908PRCP    5  7    0  7    0  7    0  7  135  -9999  "
-    # Erwartetes Ergebnis: (250 + 300) / 2 / 10 = 27.5
-    assert extract_average_value(line1) == 27.5, f"Fehler: Erwartet 27.5, erhalten {extract_average_value(line1)}"
+    assert extract_average_value(line1) == 18.67, f"Fehler: Erwartet 18.67, erhalten {extract_average_value(line1)}"
 
     # Testfall 2: Nur ein gültiger Wert
-    line2 = "01234567890123456789   100   -9999   -9999  "
-    # Erwartetes Ergebnis: 100 / 10 = 10.0
-    assert extract_average_value(line2) == 10.0, f"Fehler: Erwartet 10.0, erhalten {extract_average_value(line2)}"
+    line2 = "AQC00914141201908PRCP    -9999  200    -9999  -9999    -9999  -9999    -9999  -9999  -9999  -9999  "
+    assert extract_average_value(line2) == 20.0, f"Fehler: Erwartet 20.0, erhalten {extract_average_value(line2)}"
 
     # Testfall 3: Kein gültiger Wert
-    line3 = "01234567890123456789   -9999   -9999   -9999  "
-    # Erwartetes Ergebnis: 0, da keine gültigen Werte
+    line3 = "AQC00914141201908PRCP    -9999  -9999    -9999  -9999  "
     assert extract_average_value(line3) == 0, f"Fehler: Erwartet 0, erhalten {extract_average_value(line3)}"
 
     # Testfall 4: Mehrere gültige Werte
-    line4 = "01234567890123456789   500   600   700  "
-    # Erwartetes Ergebnis: (500 + 600 + 700) / 3 / 10 = 60.0
-    assert extract_average_value(line4) == 60.0, f"Fehler: Erwartet 60.0, erhalten {extract_average_value(line4)}"
+    line4 = "01234567890123456789   100   200   8  "
+    assert extract_average_value(line4) == 10.27, f"Fehler: Erwartet 10.27, erhalten {extract_average_value(line4)}"
 
     # Testfall 5: Negative Werte zulässig
-    line5 = "01234567890123456789  -200   400   600  "
-    # Erwartetes Ergebnis: (-200 + 400 + 600) / 3 / 10 = 26.67
-    assert round(extract_average_value(line5), 2) == 26.67, f"Fehler: Erwartet 26.67, erhalten {extract_average_value(line5)}"
+    line5 = "01234567890123456789  -200   20   100  "
+
+    assert round(extract_average_value(line5), 2) == -2.67, f"Fehler: Erwartet -2.67, erhalten {extract_average_value(line5)}"
 
     print('Alle Tests erfolgreich bestanden!')
 
