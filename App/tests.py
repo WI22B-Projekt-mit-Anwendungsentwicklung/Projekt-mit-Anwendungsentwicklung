@@ -55,7 +55,7 @@ def test_extract_average_value():
     assert extract_average_value(line) == 27.5
 
 
-def test_download_and_create_datapoints(mocker):
+def test_download_and_create_datapoints(mocker, mock_requests_get):
     mock_requests_get = mocker.patch("requests.get")
     mock_requests_get.return_value.status_code = 200
     mock_requests_get.return_value.text = "01234567890123456789   250   300   -9999  "
