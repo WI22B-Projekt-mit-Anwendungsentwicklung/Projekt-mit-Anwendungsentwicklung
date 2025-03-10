@@ -16,7 +16,7 @@ def test_haversine():
 def test_get_stations_in_radius(mocker):
     mock_cursor = mocker.Mock()
     mock_cursor.fetchall.return_value = [("ST123", "Station Name", 48.0, 8.0)]
-    mock_conn = mocker.patch("App.data_services.connection_pool.get_connection")
+    mock_conn = mocker.patch("data_services.connection_pool.get_connection")
     mock_conn.return_value.cursor.return_value.__enter__.return_value = mock_cursor
 
     stations = get_stations_in_radius(48.0, 8.0, 100, 2000, 2020, 5)
@@ -58,7 +58,7 @@ def test_receive_data(mocker):
     init_routes(app)
     client = app.test_client()
 
-    mocker.patch("App.data_services.get_stations_in_radius", return_value=["Station1", "Station2"])
+    mocker.patch("data_services.get_stations_in_radius", return_value=["Station1", "Station2"])
 
     response = client.post('/submit', json={
         "latitude": 48.0,
