@@ -6,7 +6,7 @@ from routes import init_routes
 from station import Station, load_stations_from_url
 
 
-# ----------------- TESTS FÜR data_services.py -----------------
+# ----------------- data_services.py -----------------
 
 def test_haversine():
     assert haversine(0, 0, 0, 0) == 0
@@ -36,7 +36,7 @@ def test_get_datapoints_for_station(mocker):
 
 
 
-# ----------------- TESTS FÜR datapoint.py -----------------
+# ----------------- datapoint.py -----------------
 
 def test_datapoint_init():
     dp = DataPoint(202401, 25.5, 10.3, "ST123")
@@ -65,7 +65,7 @@ def test_download_and_create_datapoints(mocker, mock_requests_get):
     assert len(datapoints) > 0
     assert datapoints[0].tmax == 25.0
 
-# ----------------- TESTS FÜR routes.py -----------------
+# ----------------- routes.py -----------------
 
 def test_home():
     app = Flask(__name__)
@@ -95,7 +95,7 @@ def test_receive_data(mocker):
     assert response.get_json() == ["Station1", "Station2"]
 
 
-# ----------------- TESTS FÜR station.py -----------------
+# ----------------- station.py -----------------
 
 def test_station_init():
     station = Station("ID123", "TestStation", 48.0, 8.0, 2020, 2000, 2020, 2000)
@@ -125,10 +125,8 @@ def test_load_stations_from_url(mock_requests_get):
         MagicMock(status_code=200, text="12345678901  48.123  8.456")
     ]
 
-    # Test der Funktion
     stations = load_stations_from_url("fake_url_inventory", "fake_url_stations")
 
-    # Assertions
     assert isinstance(stations, list)
     assert len(stations) > 0
     assert stations[0].id == "12345678901"
