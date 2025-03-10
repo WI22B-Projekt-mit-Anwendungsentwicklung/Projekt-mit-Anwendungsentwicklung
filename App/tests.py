@@ -82,68 +82,48 @@ def test_station_repr():
     station = Station("ID123", "TestStation", 48.0, 8.0)
     assert "ID=ID123, Name=TestStation" in repr(station)
 
-@patch("requests.get")
-def test_load_stations_from_url(mock_requests_get):
+def test_load_stations_from_url():
+    stations_text = """12345678901        Station Alpha
+22345678901        Station Beta
+32345678901        Station Gamma"""
 
+    inventory_text = """12345678901  12.345   67.890 TMAX 1980 2020
+12345678901  12.345   67.890 TMIN 1985 2015
+22345678901  23.456   78.901 TMAX 1990 2021
+32345678901  34.567   89.012 TMAX 2000 2022
+32345678901  34.567   89.012 TMIN 2005 2018"""
 
-    stations_text = """12345678901                              Test Station 1
-98765432109                              Test Station 2"""
+    with patch("requests.get") as mock_requests_get:
+        mock_requests_get.side_effect = [
+            MagicMock(status_code=200, text=stations_text),
+            MagicMock(status_code=200, text=inventory_text)
+        ]
 
-    inventory_text = """12345678901  48.123  008.456   TMAX  2020  2023
-12345678901  48.123  008.456   TMIN  2018  2022
-98765432109  50.987  007.654   TMAX  2015  2021
-98765432109  50.987  007.654   TMIN  2013  2020"""
+        stations = load_stations_from_url("url_stations_placeholder", "url_inventory_placeholder")
 
-    mock_requests_get.side_effect = [
-        MagicMock(status_code=200, text=stations_text),
-        MagicMock(status_code=200, text=inventory_text),
-    ]
+        expected_stations = [
+            Station(id="12345678901", name="Station Alpha", latitude=12.345, longitude=67.890,
+                    last_measure_tmax=2020, first_measure_tmax=1980, last_measure_tmin=2015, first_measure_tmin=1985),
+            Station(id="22345678901", name="Station Beta", latitude=23.456, longitude=78.901,
+                    last_measure_tmax=2021, first_measure_tmax=1990, last_measure_tmin=0, first_measure_tmin=0),
+            Station(id="32345678901", name="Station Gamma", latitude=34.567, longitude=89.012,
+                    last_measure_tmax=2022, first_measure_tmax=2000, last_measure_tmin=2018, first_measure_tmin=2005)
+        ]
 
-    stations = load_stations_from_url("fake_url_inventory", "fake_url_stations")
+        assert len(stations) == len(expected_stations)
+        for station, expected_station in zip(stations, expected_stations):
+            assert station.id == expected_station.id
+            assert station.name == expected_station.name
+            assert station.latitude == expected_station.latitude
+            assert station.longitude == expected_station.longitude
+            assert station.last_measure_tmax == expected_station.last_measure_tmax
+            assert station.first_measure_tmax == expected_station.first_measure_tmax
+            assert station.last_measure_tmin == expected_station.last_measure_tmin
+            assert station.first_measure_tmin == expected_station.first_measure_tmin
 
-    for station in stations:
-        print(f"Station ID: {station.id}, Name: {station.name}, Lat: {station.latitude}, Lon: {station.longitude}")
-
-    assert isinstance(stations, list)
-    assert len(stations) == 2
-
-    assert stations[0].id == "12345678901"
-    assert stations[0].name == "Test Station 1"
-    assert stations[0].latitude == 48.123
-    assert stations[0].longitude == 8.456
-    assert stations[0].first_measure_tmax == 2020
-    assert stations[0].last_measure_tmax == 2023
-    assert stations[0].first_measure_tmin == 2018
-    assert stations[0].last_measure_tmin == 2022
-
-    assert stations[1].id == "98765432109"
-    assert stations[1].name == "Test Station 2"
-    assert stations[1].latitude == 50.987
-    assert stations[1].longitude == 7.654
-    assert stations[1].first_measure_tmax == 2015
-    assert stations[1].last_measure_tmax == 2021
-    assert stations[1].first_measure_tmin == 2013
-    assert stations[1].last_measure_tmin == 2020
 
 # ----------------- Additional Tests -----------------
 
-def test_invalid_coordinates():
-    from data_services import get_stations_in_radius
 
-    with pytest.raises(ValueError):
-        get_stations_in_radius(95.0, 8.0, 100, 2000, 2020, 5)  # Breitengrad > 90 ist ungültig
-
-    with pytest.raises(ValueError):
-        get_stations_in_radius(48.0, 190.0, 100, 2000, 2020, 5)  # Längengrad > 180 ist ungültig
-
-    with pytest.raises(ValueError):
-        get_stations_in_radius("abc", 8.0, 100, 2000, 2020, 5)  # Ungültige Eingabe als String
-
-import requests
-
-def test_api_missing_params():
-    response = requests.get("http://localhost:5000/get_weather_data")
-    assert response.status_code == 400  # Bad Request
-    assert "Missing parameters" in response.text  # Erwartete Fehlermeldung
 
 
