@@ -38,31 +38,74 @@ def test_datapoint_repr():
 
 def test_extract_average_value():
     # Testfall 1: Normalfall mit positiven Werten
-    line1 = "01234567890123456789   250   300   -9999  "
-    # Erwartetes Ergebnis: (250 + 300) / 2 / 10 = 51.633
-    assert extract_average_value(line1) == 51.633, f"Fehler: Erwartet 51.633, erhalten {extract_average_value(line1)}"
+    line1 = "012345678901234567890250   300   -9999  "
+    # Erwartetes Ergebnis: (250 + 300) / 2 / 10 = 27.5
+    assert extract_average_value(line1) == 27.5, f"Fehler: Erwartet 27.5, erhalten {extract_average_value(line1)}"
 
     # Testfall 2: Nur ein gültiger Wert
-    line2 = "01234567890123456789   100   -9999   -9999  "
+    line2 = "012345678901234567890100   -9999   -9999  "
     # Erwartetes Ergebnis: 100 / 10 = 10.0
     assert extract_average_value(line2) == 10.0, f"Fehler: Erwartet 10.0, erhalten {extract_average_value(line2)}"
 
     # Testfall 3: Kein gültiger Wert
-    line3 = "01234567890123456789   -9999   -9999   -9999  "
+    line3 = "012345678901234567890-9999   -9999   -9999  "
     # Erwartetes Ergebnis: 0, da keine gültigen Werte
     assert extract_average_value(line3) == 0, f"Fehler: Erwartet 0, erhalten {extract_average_value(line3)}"
 
     # Testfall 4: Mehrere gültige Werte
-    line4 = "01234567890123456789   500   600   700  "
+    line4 = "012345678901234567890500   600   700  "
     # Erwartetes Ergebnis: (500 + 600 + 700) / 3 / 10 = 60.0
     assert extract_average_value(line4) == 60.0, f"Fehler: Erwartet 60.0, erhalten {extract_average_value(line4)}"
 
     # Testfall 5: Negative Werte zulässig
-    line5 = "01234567890123456789  -200   400   600  "
-    # Erwartetes Ergebnis: (-200 + 400 + 600) / 3 / 10 = 26.667
-    assert extract_average_value(line5) == 26.667, f"Fehler: Erwartet 26.667, erhalten {extract_average_value(line5)}"
+    line5 = "01234567890123456789-200   400   600  "
+    # Erwartetes Ergebnis: (-200 + 400 + 600) / 3 / 10 = 26.67
+    assert round(extract_average_value(line5), 2) == 26.67, f"Fehler: Erwartet 26.67, erhalten {extract_average_value(line5)}"
+
+    # Testfall 6: Werte mit 'X' als Trennzeichen (typische NOAA-Daten)
+    line6 = "012345678901234567890250  X  300  X  350  X  -9999  "
+    # Erwartetes Ergebnis: (250 + 300 + 350) / 3 / 10 = 30.0
+    assert extract_average_value(line6) == 30.0, f"Fehler: Erwartet 30.0, erhalten {extract_average_value(line6)}"
 
     print("Alle Tests erfolgreich bestanden!")
+
+
+
+import requests
+from unittest.mock import patch, mock_open, MagicMock
+
+@patch("requests.get")
+@patch("builtins.open", new_callable=mock_open, read_data=
+"""
+ACW00011604194901TMAX  289  X  289  X  283  X  283  X  289  X
+ACW00011604194901TMIN  217  X  228  X  222  X  233  X  222  X
+"""
+       )
+@patch("os.remove")  # Mock os.remove, damit keine Datei gelöscht wird
+@patch("data_services.extract_average_value")
+def test_download_and_create_datapoints(mock_extract_avg, mock_os_remove, mock_open, mock_requests_get):
+    # Mock die HTTP-Antwort mit Beispiel-Bytes für die Datei
+    mock_requests_get.return_value = MagicMock(status_code=200, content=b"Dummy Data")
+
+    # Mock den Return-Wert von extract_average_value für TMAX und TMIN
+    mock_extract_avg.side_effect = [28.9, 21.7, 28.3, 22.8, 28.3, 22.2]
+
+    # Führe die Funktion aus
+    datapoints = download_and_create_datapoints("ACW00011604")
+
+    # Prüfungen
+    assert len(datapoints) == 3, f"Fehler: Erwartet 3 DataPoints, erhalten {len(datapoints)}"
+
+    first_dp = datapoints[0]
+    assert first_dp.date == 194901, f"Fehler: Erwartetes Datum 194901, erhalten {first_dp.date}"
+    assert first_dp.tmax == 28.9, f"Fehler: Erwartetes TMAX 28.9, erhalten {first_dp.tmax}"
+    assert first_dp.tmin == 21.7, f"Fehler: Erwartetes TMIN 21.7, erhalten {first_dp.tmin}"
+
+    # Prüfen, ob die Datei geöffnet und gelöscht wurde
+    mock_open.assert_called_with("ACW00011604.dly", 'wb')
+    mock_os_remove.assert_called_with("ACW00011604.dly")
+
+    print("Test erfolgreich bestanden!")
 
 
 # ----------------- routes.py -----------------
