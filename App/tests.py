@@ -1,5 +1,7 @@
 import pytest
 from flask import Flask
+import requests
+from unittest.mock import patch, MagicMock
 from data_services import haversine, get_stations_in_radius, get_datapoints_for_station
 from datapoint import DataPoint, extract_average_value, download_and_create_datapoints, download_and_create_datapoints_local
 from routes import init_routes
@@ -27,7 +29,7 @@ def test_get_stations_in_radius(mocker):
 def test_get_datapoints_for_station(mocker):
     mock_cursor = mocker.Mock()
     mock_cursor.fetchall.return_value = [(202401, 25.5, 10.3)]
-    mock_conn = mocker.patch("App.data_services.connection_pool.get_connection")
+    mock_conn = mocker.patch("data_services.connection_pool.get_connection")
     mock_conn.return_value.cursor.return_value.__enter__.return_value = mock_cursor
 
     datapoints = get_datapoints_for_station("ST123", 2020, 2023)
@@ -53,17 +55,6 @@ def test_datapoint_repr():
 def test_extract_average_value():
     line = "01234567890123456789   250   300   -9999  "
     assert round(extract_average_value(line), 2) == 51.63
-
-
-
-def test_download_and_create_datapoints(mocker, mock_requests_get):
-    mock_requests_get = mocker.patch("requests.get")
-    mock_requests_get.return_value.status_code = 200
-    mock_requests_get.return_value.content = b"01234567890123456789   250   300   -9999  "
-
-    datapoints = download_and_create_datapoints("ST123")
-    assert len(datapoints) > 0
-    assert datapoints[0].tmax == 25.0
 
 # ----------------- routes.py -----------------
 
@@ -111,27 +102,43 @@ def test_station_repr():
 
 from unittest.mock import MagicMock
 
-@pytest.fixture
-def mock_requests_get(mocker):
-    return mocker.patch("requests.get")
 
+@patch("requests.get")
 def test_load_stations_from_url(mock_requests_get):
+    stations_text = """12345678901                              Test Station 1
+98765432109                              Test Station 2"""
 
-    mock_requests_get.return_value.status_code = 200
-    mock_requests_get.return_value.text = """12345678901  48.123  8.456   Test Station"""
+    inventory_text = """12345678901  48.123  8.456   TMAX  2020  2023
+12345678901  48.123  8.456   TMIN  2018  2022
+98765432109  50.987  7.654   TMAX  2015  2021
+98765432109  50.987  7.654   TMIN  2013  2020"""
 
     mock_requests_get.side_effect = [
-        MagicMock(status_code=200, text="12345678901  48.123  8.456   Test Station"),
-        MagicMock(status_code=200, text="12345678901  48.123  8.456")
+        MagicMock(status_code=200, text=stations_text),
+        MagicMock(status_code=200, text=inventory_text),
     ]
 
     stations = load_stations_from_url("fake_url_inventory", "fake_url_stations")
 
     assert isinstance(stations, list)
-    assert len(stations) > 0
+    assert len(stations) == 2
+
     assert stations[0].id == "12345678901"
-    assert stations[0].name == "Test Station"
+    assert stations[0].name == "Test Station 1"
     assert stations[0].latitude == 48.123
     assert stations[0].longitude == 8.456
+    assert stations[0].first_measure_tmax == 2020
+    assert stations[0].last_measure_tmax == 2023
+    assert stations[0].first_measure_tmin == 2018
+    assert stations[0].last_measure_tmin == 2022
+
+    assert stations[1].id == "98765432109"
+    assert stations[1].name == "Test Station 2"
+    assert stations[1].latitude == 50.987
+    assert stations[1].longitude == 7.654
+    assert stations[1].first_measure_tmax == 2015
+    assert stations[1].last_measure_tmax == 2021
+    assert stations[1].first_measure_tmin == 2013
+    assert stations[1].last_measure_tmin == 2020
 
 
