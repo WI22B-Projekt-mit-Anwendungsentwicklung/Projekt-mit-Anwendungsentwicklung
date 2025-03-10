@@ -189,6 +189,30 @@ def test_load_stations_with_real_noaa_data():
 
 # ----------------- Additional Tests -----------------
 
+def test_get_stations_in_radius_invalid_radius(mocker):
+    """Testet, ob negative Radiuswerte abgefangen werden"""
+    mock_cursor = mocker.Mock()
+    mock_cursor.fetchall.return_value = [("ST123", "Station Name", 48.0, 8.0)]
+    mock_conn = mocker.patch("data_services.connection_pool.get_connection")
+    mock_conn.return_value.cursor.return_value.__enter__.return_value = mock_cursor
 
+    # Negativer Radius sollte zu einer Exception führen
+    with pytest.raises(ValueError, match="Radius darf nicht negativ sein"):
+        get_stations_in_radius(48.0, 8.0, -50, 2000, 2020, 5)
+
+def test_get_stations_in_radius_max_radius(mocker):
+    """Testet, ob Stationen über 100km entfernt ausgeschlossen werden"""
+    mock_cursor = mocker.Mock()
+    mock_cursor.fetchall.return_value = [
+        ("ST001", "Close Station", 48.0, 8.0),   # 50 km entfernt (soll erhalten bleiben)
+        ("ST002", "Far Station", 49.5, 9.5)     # 150 km entfernt (soll ignoriert werden)
+    ]
+    mock_conn = mocker.patch("data_services.connection_pool.get_connection")
+    mock_conn.return_value.cursor.return_value.__enter__.return_value = mock_cursor
+
+    stations = get_stations_in_radius(48.0, 8.0, 100, 2000, 2020, 5)
+
+    assert len(stations) == 1, f"Fehler: Erwartet 1 Station, erhalten {len(stations)}"
+    assert stations[0][0][0] == "ST001", f"Fehler: Erwartet ST001, erhalten {stations[0][0][0]}"
 
 
