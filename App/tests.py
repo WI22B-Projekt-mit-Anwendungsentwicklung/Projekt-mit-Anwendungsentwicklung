@@ -26,17 +26,16 @@ def test_get_stations_in_radius(mocker):
     mock_conn = mocker.patch("data_services.connection_pool.get_connection")
     mock_conn.return_value.cursor.return_value.__enter__.return_value = mock_cursor
 
-    # Mock `haversine` um feste Entfernungen zurückzugeben
     mocker.patch("data_services.haversine", side_effect=[10.5, 5.0, 50.0])
 
     stations = get_stations_in_radius(48.0, 8.0, 100, 2000, 2020, 3)
 
-    # 1. Test: Es sollten genau 3 Stationen gefunden werden
+    # 1. Test: Excactly 3 Stations
     assert len(stations) == 3, f"Fehler: Erwartet 3 Stationen, erhalten {len(stations)}"
 
-    # 2. Test: Die Stationen sollten nach Entfernung sortiert sein
-    expected_order = ["ST456", "ST123", "ST789"]  # Sortiert nach mockerten Distanzen
-    actual_order = [station[0][0] for station in stations]  # Extrahiere die Station-IDs
+    # 2. Test: Stations sorted by distance
+    expected_order = ["ST456", "ST123", "ST789"]
+    actual_order = [station[0][0] for station in stations]
 
     assert actual_order == expected_order, f"Fehler: Erwartete Reihenfolge {expected_order}, erhalten {actual_order}"
 
@@ -73,7 +72,7 @@ def test_extract_average_value():
 
     # Testfall 5: Negative Werte zulässig
     line5 = "AR000087860195608TMIN   -4  G  -16  G   -4  G   28  G   70  G   58  G   79  G   60  G   40  G   44  G   46  G  118  G  108  G   76  G   43  G    4  G   42  G  142  G  108  G   74  G   18  G    0  G    2  G   84  G   37  G   60  G   68  G   70  G   21  G   -7  G    4  G"
-    assert extract_average_value(line5) == 4.423, f"Fehler: Erwartet 4.423, erhalten {extract_average_value(line5)}"
+    assert extract_average_value(line5) == 4.752, f"Fehler: Erwartet 4.752, erhalten {extract_average_value(line5)}"
 
     print('Alle Tests erfolgreich bestanden!')
 
@@ -121,12 +120,10 @@ def test_station_repr():
     station = Station("ID123", "TestStation", 48.0, 8.0)
     assert "ID=ID123, Name=TestStation" in repr(station)
 
-# Funktion, die getestet wird
 def load_stations_from_url(url_inventory: str, url_stations: str):
     """
     Lädt und verarbeitet Stations- und Inventardaten von NOAA-URLs.
     """
-    # Stationsdaten laden
     response = requests.get(url_stations)
     if response.status_code != 200:
         raise Exception(f"Fehler beim Laden der Stationsdaten: HTTP {response.status_code}")
@@ -137,7 +134,6 @@ def load_stations_from_url(url_inventory: str, url_stations: str):
         station_name = row[41:71].strip()
         station_dict[station_id] = station_name
 
-    # Inventardaten laden
     response = requests.get(url_inventory)
     if response.status_code != 200:
         raise Exception(f"Fehler beim Laden der Inventardaten: HTTP {response.status_code}")
@@ -160,30 +156,24 @@ def load_stations_from_url(url_inventory: str, url_stations: str):
 
     return stations
 
-
-# Testfunktion für NOAA-Daten
 def test_load_stations_with_real_noaa_data():
     """
     Testet die Funktion load_stations_from_url.
     """
-    # NOAA-URLs
     url_stations = "https://www1.ncdc.noaa.gov/pub/data/ghcn/daily/ghcnd-stations.txt"
     url_inventory = "https://www1.ncdc.noaa.gov/pub/data/ghcn/daily/ghcnd-inventory.txt"
 
-    # Funktion testen
     stations = load_stations_from_url(url_inventory, url_stations)
 
     # Assertions: Sicherstellen, dass die Daten korrekt geladen wurden
     assert len(stations) > 0, "Es wurden keine Stationen geladen!"  # Es sollten Stationen vorhanden sein
 
-    # Beispielprüfungen (Basis auf bekannten Stationen)
     first_station = stations[0]
     assert "id" in first_station, "Erste Station enthält keine ID"
     assert "name" in first_station, "Erste Station enthält keinen Namen"
     assert "latitude" in first_station, "Erste Station enthält keine Breitenkoordinaten"
     assert "longitude" in first_station, "Erste Station enthält keine Längenkoordinaten"
 
-    # Beispielausgabe der ersten Station für Laufzeitprüfung (optional)
     print(f"Erste Station: {first_station}")
 
 
