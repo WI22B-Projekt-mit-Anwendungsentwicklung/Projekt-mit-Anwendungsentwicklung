@@ -1,7 +1,6 @@
 import pytest
 from App.data_services import haversine, get_stations_in_radius, get_datapoints_for_station
 
-
 def test_haversine():
     assert haversine(0, 0, 0, 0) == 0
     assert round(haversine(48.8566, 2.3522, 51.5074, -0.1278), 1) == 343.6

@@ -5,7 +5,11 @@ services:
 #    volumes:
 #      - /Users/lukasschick/Documents/ghcnd_all:/data
 #      - /path/to/local/ghcn_all:/data
-    command: sh -c "python3 ./app.py & sh /app/Tests/wait-for-app.sh"
+    command: sh -c "python3 ./app.py & sh /app/App/Tests/wait-for-app.sh && pytest --rootdir=/app/App/Tests"
+    environment:
+      - PYTHONPATH=/app
+    volumes:
+      - ./App:/app/App
     ports:
       - "8000:8000"
     depends_on:
