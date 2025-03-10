@@ -41,25 +41,21 @@ def test_extract_average_value():
     line1 = "AO000066422195802TMIN  200  I  200  I  228  I  200  I  200  I  178  I  189  I  200  I  200  I  200  I  178  I  178  I  178  I  172  I  178  I  150  I  161  I  161  I  139  I  161  I  178  I  189  I  178  I  161  I  178  I  178  I  189  I  178  I-9999   -9999   -9999"
     assert extract_average_value(line1) == 18.143, f"Fehler: Erwartet 18.143, erhalten {extract_average_value(line1)}"
 
-    # Testfall 2: Nur ein gültiger Wert
-    line2 = "AO000066422195802TMIN  -9999   -9999   250  I  -9999   -9999   -9999   -9999   -9999   -9999   -9999   -9999"
-    # Erwartetes Ergebnis: 250 / 10 = 25.0
-    assert extract_average_value(line2) == 25.0, f"Fehler: Erwartet 25.0, erhalten {extract_average_value(line2)}"
+    # Testfall 2: Kein gültiger Wert
+    line2 = "AO000066422195501TMAX-9999   -9999   -9999   -9999   -9999   -9999   -9999   -9999   -9999   -9999   -9999   -9999   -9999   -9999   -9999   -9999   -9999   -9999   -9999   -9999   -9999   -9999   -9999   -9999   -9999   -9999   -9999     -9999   -9999   -9999   -9999"
+    assert extract_average_value(line2) == 0, f"Fehler: Erwartet 0, erhalten {extract_average_value(line2)}"
 
-    # Testfall 3: Kein gültiger Wert
-    line3 = "AO000066422195802TMIN  -9999   -9999   -9999   -9999   -9999   -9999   -9999   -9999   -9999   -9999   -9999"
-    # Erwartetes Ergebnis: 0, da keine gültigen Werte
-    assert extract_average_value(line3) == 0, f"Fehler: Erwartet 0, erhalten {extract_average_value(line3)}"
+    # Testfall 3: Nur ein gültiger Wert
+    line3 = "AO000066422195501TMAX-9999   -9999   -9999   -9999   -9999   -9999   -9999   -9999   -9999   -9999   -9999   -9999   -9999   -9999   -9999   -9999   -9999   -9999   -9999   -9999   -9999   -9999   -9999   -9999   -9999   -9999   -9999     278  I-9999   -9999   -9999"
+    assert extract_average_value(line3) == 27.800, f"Fehler: Erwartet 27.800, erhalten {extract_average_value(line3)}"
 
     # Testfall 4: Mehrere gültige Werte
-    line4 = "AO000066422195802TMIN  100  I  200  I  300  I  400  I  500  I  600  I  700  I  800  I  900  I  1000  I  -9999   -9999   -9999"
-    # Erwartetes Ergebnis: (100 + 200 + 300 + 400 + 500 + 600 + 700 + 800 + 900 + 1000) / 10 / 10 = 55.0
-    assert extract_average_value(line4) == 55.0, f"Fehler: Erwartet 55.0, erhalten {extract_average_value(line4)}"
+    line4 = "AO000066422195512TMAX-9999   -9999   -9999   -9999   -9999   -9999     278  I-9999   -9999   -9999   -9999   -9999   -9999   -9999   -9999     250  I  222  I-9999   -9999     239  I-9999     250  I-9999   -9999   -9999     250  I  222  I-9999     250  I  261  I  239  I"
+    assert extract_average_value(line4) == 24.610, f"Fehler: Erwartet 24.610, erhalten {extract_average_value(line4)}"
 
     # Testfall 5: Negative Werte zulässig
-    line5 = "AO000066422195802TMIN  -200  I  300  I  -400  I  500  I  -600  I  700  I  -800  I  900  I  -1000  I  1100  I  -9999   -9999"
-    # Erwartetes Ergebnis: (-200 + 300 + (-400) + 500 + (-600) + 700 + (-800) + 900 + (-1000) + 1100) / 10 / 10 = 5.0
-    assert extract_average_value(line5) == 5.0, f"Fehler: Erwartet 5.0, erhalten {extract_average_value(line5)}"
+    line5 = "AR000087860195608TMIN   -4  G  -16  G   -4  G   28  G   70  G   58  G   79  G   60  G   40  G   44  G   46  G  118  G  108  G   76  G   43  G    4  G   42  G  142  G  108  G   74  G   18  G    0  G    2  G   84  G   37  G   60  G   68  G   70  G   21  G   -7  G    4  G"
+    assert extract_average_value(line5) == 4.423, f"Fehler: Erwartet 4.423, erhalten {extract_average_value(line5)}"
 
     print('Alle Tests erfolgreich bestanden!')
 
