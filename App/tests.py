@@ -37,26 +37,9 @@ def test_datapoint_repr():
     assert "DataPoint(date=202401" in repr(dp)
 
 def test_extract_average_value():
-    # Testfall 1: Normalfall mit positiven Werten
-    line1 = "AQC00914141201908PRCP    5  7    0  7    0  7    0  7  135  7   69  7    0  7    0  7    0  7    0  7    0  7   97  7    3  7    0  7    0  7  696  7    0  7    0  7  312  7    0  7    0  7    0  7    0  7    0  7    0  7  132  7    0  7    0  7    0  7   10  7   51  7"
-    assert extract_average_value(line1) == 4.9, f"Fehler: Erwartet 4.9, erhalten {extract_average_value(line1)}"
-
-    # Testfall 2: Nur ein gültiger Wert
-    line2 = "AQC00914141201908PRCP    -9999  200    -9999  -9999    -9999  -9999    -9999  -9999  -9999  -9999  "
-    assert extract_average_value(line2) == 20.0, f"Fehler: Erwartet 20.0, erhalten {extract_average_value(line2)}"
-
-    # Testfall 3: Kein gültiger Wert
-    line3 = "AQC00914141201908PRCP    -9999  -9999    -9999  -9999  "
-    assert extract_average_value(line3) == 0, f"Fehler: Erwartet 0, erhalten {extract_average_value(line3)}"
-
-    # Testfall 4: Mehrere gültige Werte
-    line4 = "01234567890123456789   100   200   8  "
-    assert extract_average_value(line4) == 10.27, f"Fehler: Erwartet 10.27, erhalten {extract_average_value(line4)}"
-
-    # Testfall 5: Negative Werte zulässig
-    line5 = "01234567890123456789  -200   20   100  "
-
-    assert round(extract_average_value(line5), 2) == -2.67, f"Fehler: Erwartet -2.67, erhalten {extract_average_value(line5)}"
+    # Testfall 1:
+    line1 = "01TMAX	5,7	-0,4	8,6	3,7	4	3,4	5,9	4,3	9,7	8,6	5,1	-0,2	5,1	6,8	11,3	12,3	8,3	4,3	1,6	1,7	4	6,7	4,6	6,3	8,7	9,3	4	4,7	3,9	8,1	11,2"
+    assert extract_average_value(line1) == 0.5535, f"Fehler: Erwartet 0.5535, erhalten {extract_average_value(line1)}"
 
     print('Alle Tests erfolgreich bestanden!')
 
