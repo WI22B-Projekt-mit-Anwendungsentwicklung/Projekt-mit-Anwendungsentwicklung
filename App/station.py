@@ -100,7 +100,3 @@ def load_stations_from_url(url_inventory: str, url_stations: str):
     else:
         print(f"Failed to load the file: HTTP {response.status_code}")
         return []
-
-
-if __name__ == "__main__":
-    load_stations_from_url("https://www1.ncdc.noaa.gov/pub/data/ghcn/daily/ghcnd-inventory.txt")
