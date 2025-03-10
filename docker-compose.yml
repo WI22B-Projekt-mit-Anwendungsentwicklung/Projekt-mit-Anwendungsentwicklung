@@ -5,7 +5,7 @@ services:
 #    volumes:
 #      - /Users/lukasschick/Documents/ghcnd_all:/data
 #      - /path/to/local/ghcn_all:/data
-    command: sh -c "pytest Tests / && python3 ./app.py"
+    command: sh -c "pytest Tests/ && python3 ./app.py"
     ports:
       - "8000:8000"
     depends_on:
