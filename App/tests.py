@@ -6,6 +6,8 @@ from datapoint import DataPoint, extract_average_value, download_and_create_data
 from routes import init_routes
 from station import Station
 
+# ----------------- Testing functions ----------------
+
 # ----------------- data_services.py -----------------
 
 def test_haversine():
@@ -34,31 +36,33 @@ def test_datapoint_repr():
     dp = DataPoint(202401, 25.5, 10.3, "ST123")
     assert "DataPoint(date=202401" in repr(dp)
 
-
-import pytest
-
 def test_extract_average_value():
     # Testfall 1: Normalfall mit positiven Werten
     line1 = "01234567890123456789   250   300   -9999  "
-    assert extract_average_value(line1) == 27.5  # Erwarteter Wert
+    # Erwartetes Ergebnis: (250 + 300) / 2 / 10 = 51.633
+    assert extract_average_value(line1) == 51.633, f"Fehler: Erwartet 51.633, erhalten {extract_average_value(line1)}"
 
     # Testfall 2: Nur ein gültiger Wert
     line2 = "01234567890123456789   100   -9999   -9999  "
-    assert extract_average_value(line2) == 10.0  # Nur 100 bleibt -> 100 / 10 = 10.0
+    # Erwartetes Ergebnis: 100 / 10 = 10.0
+    assert extract_average_value(line2) == 10.0, f"Fehler: Erwartet 10.0, erhalten {extract_average_value(line2)}"
 
     # Testfall 3: Kein gültiger Wert
     line3 = "01234567890123456789   -9999   -9999   -9999  "
-    assert extract_average_value(line3) == 0  # Keine Werte → Durchschnitt 0
+    # Erwartetes Ergebnis: 0, da keine gültigen Werte
+    assert extract_average_value(line3) == 0, f"Fehler: Erwartet 0, erhalten {extract_average_value(line3)}"
 
     # Testfall 4: Mehrere gültige Werte
     line4 = "01234567890123456789   500   600   700  "
-    assert extract_average_value(line4) == 60.0  # (500 + 600 + 700) / 3 / 10 = 60.0
+    # Erwartetes Ergebnis: (500 + 600 + 700) / 3 / 10 = 60.0
+    assert extract_average_value(line4) == 60.0, f"Fehler: Erwartet 60.0, erhalten {extract_average_value(line4)}"
 
     # Testfall 5: Negative Werte zulässig
     line5 = "01234567890123456789  -200   400   600  "
-    assert extract_average_value(line5) == 26.67  # (-200 + 400 + 600) / 3 / 10 = 26.67
+    # Erwartetes Ergebnis: (-200 + 400 + 600) / 3 / 10 = 26.667
+    assert extract_average_value(line5) == 26.667, f"Fehler: Erwartet 26.667, erhalten {extract_average_value(line5)}"
 
-    print("Alle Tests bestanden!")
+    print("Alle Tests erfolgreich bestanden!")
 
 
 # ----------------- routes.py -----------------
