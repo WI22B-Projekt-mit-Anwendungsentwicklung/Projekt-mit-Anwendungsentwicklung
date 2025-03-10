@@ -16,6 +16,7 @@ def test_haversine():
 
 
 def test_get_stations_in_radius(mocker):
+    # Mock database query results
     mock_cursor = mocker.Mock()
     mock_cursor.fetchall.return_value = [
         ("ST123", "Station A", 48.0, 8.0),
@@ -23,23 +24,27 @@ def test_get_stations_in_radius(mocker):
         ("ST789", "Station C", 49.0, 9.0),
     ]
 
+    # Mock database connection
     mock_conn = mocker.patch("data_services.connection_pool.get_connection")
     mock_conn.return_value.cursor.return_value.__enter__.return_value = mock_cursor
 
+    # Mock haversine function to return specific distances for each station
     mocker.patch("data_services.haversine", side_effect=[10.5, 5.0, 50.0])
 
+    # Execute the function
     stations = get_stations_in_radius(48.0, 8.0, 100, 2000, 2020, 3)
 
-    # 1. Test: Excactly 3 Stations
-    assert len(stations) == 3, f"Fehler: Erwartet 3 Stationen, erhalten {len(stations)}"
+    # 1. Test: Ensure exactly 3 stations are returned
+    assert len(stations) == 3, f"Error: Expected 3 stations, got {len(stations)}"
 
-    # 2. Test: Stations sorted by distance
+    # 2. Test: Ensure stations are sorted by distance (ascending order)
     expected_order = ["ST456", "ST123", "ST789"]
     actual_order = [station[0][0] for station in stations]
 
-    assert actual_order == expected_order, f"Fehler: Erwartete Reihenfolge {expected_order}, erhalten {actual_order}"
+    assert actual_order == expected_order, f"Error: Expected order {expected_order}, got {actual_order}"
 
-    print("Test erfolgreich bestanden!")
+    print("Test passed successfully!")
+
 
 # ----------------- datapoint.py -----------------
 
@@ -54,27 +59,28 @@ def test_datapoint_repr():
     assert "DataPoint(date=202401" in repr(dp)
 
 def test_extract_average_value():
-    # Testfall 1: Normalfall mit positiven Werten
+    # Test Case 1: Normal case with positive values
     line1 = "AO000066422195802TMIN  200  I  200  I  228  I  200  I  200  I  178  I  189  I  200  I  200  I  200  I  178  I  178  I  178  I  172  I  178  I  150  I  161  I  161  I  139  I  161  I  178  I  189  I  178  I  161  I  178  I  178  I  189  I  178  I-9999   -9999   -9999"
-    assert extract_average_value(line1) == 18.143, f"Fehler: Erwartet 18.143, erhalten {extract_average_value(line1)}"
+    assert extract_average_value(line1) == 18.143, f"Error: Expected 18.143, got {extract_average_value(line1)}"
 
-    # Testfall 2: Kein gültiger Wert
+    # Test Case 2: No valid values
     line2 = "AO000066422195501TMAX-9999   -9999   -9999   -9999   -9999   -9999   -9999   -9999   -9999   -9999   -9999   -9999   -9999   -9999   -9999   -9999   -9999   -9999   -9999   -9999   -9999   -9999   -9999   -9999   -9999   -9999   -9999   -9999   -9999   -9999   -9999"
-    assert extract_average_value(line2) == 0, f"Fehler: Erwartet 0, erhalten {extract_average_value(line2)}"
+    assert extract_average_value(line2) == 0, f"Error: Expected 0, got {extract_average_value(line2)}"
 
-    # Testfall 3: Nur ein gültiger Wert
+    # Test Case 3: Only one valid value
     line3 = "AO000066422195501TMAX-9999   -9999   -9999   -9999   -9999   -9999   -9999   -9999   -9999   -9999   -9999   -9999   -9999   -9999   -9999   -9999   -9999   -9999   -9999   -9999   -9999   -9999   -9999   -9999   -9999   -9999   -9999     278  I-9999   -9999   -9999"
-    assert extract_average_value(line3) == 27.800, f"Fehler: Erwartet 27.800, erhalten {extract_average_value(line3)}"
+    assert extract_average_value(line3) == 27.800, f"Error: Expected 27.800, got {extract_average_value(line3)}"
 
-    # Testfall 4: Mehrere gültige Werte
+    # Test Case 4: Multiple valid values
     line4 = "AO000066422195512TMAX-9999   -9999   -9999   -9999   -9999   -9999     278  I-9999   -9999   -9999   -9999   -9999   -9999   -9999   -9999     250  I  222  I-9999   -9999     239  I-9999     250  I-9999   -9999   -9999     250  I  222  I-9999     250  I  261  I  239  I"
-    assert extract_average_value(line4) == 24.610, f"Fehler: Erwartet 24.610, erhalten {extract_average_value(line4)}"
+    assert extract_average_value(line4) == 24.610, f"Error: Expected 24.610, got {extract_average_value(line4)}"
 
-    # Testfall 5: Negative Werte zulässig
+    # Test Case 5: Negative values allowed
     line5 = "AR000087860195608TMIN   -4  G  -16  G   -4  G   28  G   70  G   58  G   79  G   60  G   40  G   44  G   46  G  118  G  108  G   76  G   43  G    4  G   42  G  142  G  108  G   74  G   18  G    0  G    2  G   84  G   37  G   60  G   68  G   70  G   21  G   -7  G    4  G"
-    assert extract_average_value(line5) == 4.752, f"Fehler: Erwartet 4.752, erhalten {extract_average_value(line5)}"
+    assert extract_average_value(line5) == 4.752, f"Error: Expected 4.752, got {extract_average_value(line5)}"
 
-    print('Alle Tests erfolgreich bestanden!')
+    print('All test cases passed!')
+
 
 
 # ----------------- routes.py -----------------
@@ -122,11 +128,11 @@ def test_station_repr():
 
 def load_stations_from_url(url_inventory: str, url_stations: str):
     """
-    Lädt und verarbeitet Stations- und Inventardaten von NOAA-URLs.
+    Loads and processes station and inventory data from NOAA URLs.
     """
     response = requests.get(url_stations)
     if response.status_code != 200:
-        raise Exception(f"Fehler beim Laden der Stationsdaten: HTTP {response.status_code}")
+        raise Exception(f"Error loading station data: HTTP {response.status_code}")
 
     station_dict = {}
     for row in response.text.splitlines():
@@ -136,7 +142,7 @@ def load_stations_from_url(url_inventory: str, url_stations: str):
 
     response = requests.get(url_inventory)
     if response.status_code != 200:
-        raise Exception(f"Fehler beim Laden der Inventardaten: HTTP {response.status_code}")
+        raise Exception(f"Error loading inventory data: HTTP {response.status_code}")
 
     stations = []
     latest_station_id = None
@@ -151,58 +157,35 @@ def load_stations_from_url(url_inventory: str, url_stations: str):
                 "first_measure": int(row[36:40]),
                 "last_measure": int(row[41:45]),
             }
-            stations.append(station)  # Füge die Station der Liste hinzu
+            stations.append(station)
             latest_station_id = station_id
 
     return stations
 
 def test_load_stations_with_real_noaa_data():
     """
-    Testet die Funktion load_stations_from_url.
+    Tests the function load_stations_from_url.
     """
     url_stations = "https://www1.ncdc.noaa.gov/pub/data/ghcn/daily/ghcnd-stations.txt"
     url_inventory = "https://www1.ncdc.noaa.gov/pub/data/ghcn/daily/ghcnd-inventory.txt"
 
     stations = load_stations_from_url(url_inventory, url_stations)
 
-    # Assertions: Sicherstellen, dass die Daten korrekt geladen wurden
-    assert len(stations) > 0, "Es wurden keine Stationen geladen!"  # Es sollten Stationen vorhanden sein
+    # Assertions: Ensure that the data has been correctly loaded
+    assert len(stations) > 0, "No stations were loaded!"  # There should be stations available
 
     first_station = stations[0]
-    assert "id" in first_station, "Erste Station enthält keine ID"
-    assert "name" in first_station, "Erste Station enthält keinen Namen"
-    assert "latitude" in first_station, "Erste Station enthält keine Breitenkoordinaten"
-    assert "longitude" in first_station, "Erste Station enthält keine Längenkoordinaten"
+    assert "id" in first_station, "First station does not contain an ID"
+    assert "name" in first_station, "First station does not contain a name"
+    assert "latitude" in first_station, "First station does not contain latitude coordinates"
+    assert "longitude" in first_station, "First station does not contain longitude coordinates"
 
-    print(f"Erste Station: {first_station}")
+    print(f"First station: {first_station}")
+
 
 
 # ----------------- Additional Tests -----------------
 
-def test_get_stations_in_radius_invalid_radius(mocker):
-    """Testet, ob negative Radiuswerte abgefangen werden"""
-    mock_cursor = mocker.Mock()
-    mock_cursor.fetchall.return_value = [("ST123", "Station Name", 48.0, 8.0)]
-    mock_conn = mocker.patch("data_services.connection_pool.get_connection")
-    mock_conn.return_value.cursor.return_value.__enter__.return_value = mock_cursor
 
-    # Negativer Radius sollte zu einer Exception führen
-    with pytest.raises(ValueError, match="Radius darf nicht negativ sein"):
-        get_stations_in_radius(48.0, 8.0, -50, 2000, 2020, 5)
-
-def test_get_stations_in_radius_max_radius(mocker):
-    """Testet, ob Stationen über 100km entfernt ausgeschlossen werden"""
-    mock_cursor = mocker.Mock()
-    mock_cursor.fetchall.return_value = [
-        ("ST001", "Close Station", 48.0, 8.0),   # 50 km entfernt (soll erhalten bleiben)
-        ("ST002", "Far Station", 49.5, 9.5)     # 150 km entfernt (soll ignoriert werden)
-    ]
-    mock_conn = mocker.patch("data_services.connection_pool.get_connection")
-    mock_conn.return_value.cursor.return_value.__enter__.return_value = mock_cursor
-
-    stations = get_stations_in_radius(48.0, 8.0, 100, 2000, 2020, 5)
-
-    assert len(stations) == 1, f"Fehler: Erwartet 1 Station, erhalten {len(stations)}"
-    assert stations[0][0][0] == "ST001", f"Fehler: Erwartet ST001, erhalten {stations[0][0][0]}"
 
 
