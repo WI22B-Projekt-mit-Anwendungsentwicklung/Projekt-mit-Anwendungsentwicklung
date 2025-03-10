@@ -39,7 +39,7 @@ def test_datapoint_repr():
 def test_extract_average_value():
     # Testfall 1:
     line1 = "AO000066422195802TMIN  200  I  200  I  228  I  200  I  200  I  178  I  189  I  200  I  200  I  200  I  178  I  178  I  178  I  172  I  178  I  150  I  161  I  161  I  139  I  161  I  178  I  189  I  178  I  161  I  178  I  178  I  189  I  178  I-9999   -9999   -9999"
-    assert extract_average_value(line1) == 17.311, f"Fehler: Erwartet 17.311, erhalten {extract_average_value(line1)}"
+    assert extract_average_value(line1) == 18.143, f"Fehler: Erwartet 17.311, erhalten {extract_average_value(line1)}"
 
     print('Alle Tests erfolgreich bestanden!')
 
