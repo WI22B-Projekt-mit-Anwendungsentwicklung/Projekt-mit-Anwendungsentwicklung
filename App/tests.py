@@ -37,11 +37,32 @@ def test_datapoint_repr():
     assert "DataPoint(date=202401" in repr(dp)
 
 def test_extract_average_value():
-    # Testfall 1:
+    # Testfall 1: Normalfall mit positiven Werten
     line1 = "AO000066422195802TMIN  200  I  200  I  228  I  200  I  200  I  178  I  189  I  200  I  200  I  200  I  178  I  178  I  178  I  172  I  178  I  150  I  161  I  161  I  139  I  161  I  178  I  189  I  178  I  161  I  178  I  178  I  189  I  178  I-9999   -9999   -9999"
     assert extract_average_value(line1) == 18.143, f"Fehler: Erwartet 18.143, erhalten {extract_average_value(line1)}"
 
+    # Testfall 2: Nur ein gültiger Wert
+    line2 = "AO000066422195802TMIN  -9999   -9999   250  I  -9999   -9999   -9999   -9999   -9999   -9999   -9999   -9999"
+    # Erwartetes Ergebnis: 250 / 10 = 25.0
+    assert extract_average_value(line2) == 25.0, f"Fehler: Erwartet 25.0, erhalten {extract_average_value(line2)}"
+
+    # Testfall 3: Kein gültiger Wert
+    line3 = "AO000066422195802TMIN  -9999   -9999   -9999   -9999   -9999   -9999   -9999   -9999   -9999   -9999   -9999"
+    # Erwartetes Ergebnis: 0, da keine gültigen Werte
+    assert extract_average_value(line3) == 0, f"Fehler: Erwartet 0, erhalten {extract_average_value(line3)}"
+
+    # Testfall 4: Mehrere gültige Werte
+    line4 = "AO000066422195802TMIN  100  I  200  I  300  I  400  I  500  I  600  I  700  I  800  I  900  I  1000  I  -9999   -9999   -9999"
+    # Erwartetes Ergebnis: (100 + 200 + 300 + 400 + 500 + 600 + 700 + 800 + 900 + 1000) / 10 / 10 = 55.0
+    assert extract_average_value(line4) == 55.0, f"Fehler: Erwartet 55.0, erhalten {extract_average_value(line4)}"
+
+    # Testfall 5: Negative Werte zulässig
+    line5 = "AO000066422195802TMIN  -200  I  300  I  -400  I  500  I  -600  I  700  I  -800  I  900  I  -1000  I  1100  I  -9999   -9999"
+    # Erwartetes Ergebnis: (-200 + 300 + (-400) + 500 + (-600) + 700 + (-800) + 900 + (-1000) + 1100) / 10 / 10 = 5.0
+    assert extract_average_value(line5) == 5.0, f"Fehler: Erwartet 5.0, erhalten {extract_average_value(line5)}"
+
     print('Alle Tests erfolgreich bestanden!')
+
 
 # ----------------- routes.py -----------------
 
