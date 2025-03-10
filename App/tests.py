@@ -38,8 +38,8 @@ def test_datapoint_repr():
 
 def test_extract_average_value():
     # Testfall 1:
-    line1 = "01TMAX	5,7	-0,4	8,6	3,7	4	3,4	5,9	4,3	9,7	8,6	5,1	-0,2	5,1	6,8	11,3	12,3	8,3	4,3	1,6	1,7	4	6,7	4,6	6,3	8,7	9,3	4	4,7	3,9	8,1	11,2"
-    assert extract_average_value(line1) == 0.5535, f"Fehler: Erwartet 0.5535, erhalten {extract_average_value(line1)}"
+    line1 = "AO000066422195802TMIN  200  I  200  I  228  I  200  I  200  I  178  I  189  I  200  I  200  I  200  I  178  I  178  I  178  I  172  I  178  I  150  I  161  I  161  I  139  I  161  I  178  I  189  I  178  I  161  I  178  I  178  I  189  I  178  I-9999   -9999   -9999"
+    assert extract_average_value(line1) == 17.311, f"Fehler: Erwartet 17.311, erhalten {extract_average_value(line1)}"
 
     print('Alle Tests erfolgreich bestanden!')
 
