@@ -35,9 +35,31 @@ def test_datapoint_repr():
     assert "DataPoint(date=202401" in repr(dp)
 
 
+import pytest
+
 def test_extract_average_value():
-    line = "01234567890123456789   250   300   -9999  "
-    assert round(extract_average_value(line), 2) == 51.63
+    # Testfall 1: Normalfall mit positiven Werten
+    line1 = "01234567890123456789   250   300   -9999  "
+    assert extract_average_value(line1) == 27.5  # Erwarteter Wert
+
+    # Testfall 2: Nur ein gültiger Wert
+    line2 = "01234567890123456789   100   -9999   -9999  "
+    assert extract_average_value(line2) == 10.0  # Nur 100 bleibt -> 100 / 10 = 10.0
+
+    # Testfall 3: Kein gültiger Wert
+    line3 = "01234567890123456789   -9999   -9999   -9999  "
+    assert extract_average_value(line3) == 0  # Keine Werte → Durchschnitt 0
+
+    # Testfall 4: Mehrere gültige Werte
+    line4 = "01234567890123456789   500   600   700  "
+    assert extract_average_value(line4) == 60.0  # (500 + 600 + 700) / 3 / 10 = 60.0
+
+    # Testfall 5: Negative Werte zulässig
+    line5 = "01234567890123456789  -200   400   600  "
+    assert extract_average_value(line5) == 26.67  # (-200 + 400 + 600) / 3 / 10 = 26.67
+
+    print("Alle Tests bestanden!")
+
 
 # ----------------- routes.py -----------------
 
