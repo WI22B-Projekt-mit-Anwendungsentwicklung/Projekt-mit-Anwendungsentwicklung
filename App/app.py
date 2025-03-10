@@ -16,7 +16,7 @@ ds.save_data_to_db()
 # Run tests
 def run_tests():
     print("Running tests...")
-    pytest_args = ["-q", "./pytest.py"]
+    pytest_args = ["-q", "./tests.py"]
     pytest_exit_code = pytest.main(pytest_args)
     if pytest_exit_code != 0:
         print("\nTests failed! Exiting the application...")
