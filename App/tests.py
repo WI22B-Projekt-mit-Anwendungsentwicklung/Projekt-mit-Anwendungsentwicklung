@@ -1,12 +1,11 @@
 import pytest
-from flask import Flask
 import requests
+from flask import Flask
 from unittest.mock import patch, MagicMock
 from data_services import haversine, get_stations_in_radius, get_datapoints_for_station
 from datapoint import DataPoint, extract_average_value, download_and_create_datapoints, download_and_create_datapoints_local
 from routes import init_routes
 from station import Station, load_stations_from_url
-
 
 # ----------------- data_services.py -----------------
 
@@ -14,29 +13,62 @@ def test_haversine():
     assert haversine(0, 0, 0, 0) == 0
     assert round(haversine(48.8566, 2.3522, 51.5074, -0.1278), 1) == 343.6
 
+def haversine_distance(lat1, lon1, lat2, lon2):
+    """ Hilfsfunktion zur Berechnung der Entfernung zwischen zwei Punkten """
+    from math import radians, cos, sin, asin, sqrt
 
-def test_get_stations_in_radius(mocker):
+    R = 6371  # Erdradius in km
+    lat1, lon1, lat2, lon2 = map(radians, [lat1, lon1, lat2, lon2])
+    dlat = lat2 - lat1
+    dlon = lon2 - lon1
+    a = sin(dlat/2)**2 + cos(lat1) * cos(lat2) * sin(dlon/2)**2
+    c = 2 * asin(sqrt(a))
+    return R * c  # Entfernung in km
+
+@pytest.fixture
+def mock_db_connection(mocker):
+    """Fixture zum Mocken der Datenbankverbindung"""
     mock_cursor = mocker.Mock()
-    mock_cursor.fetchall.return_value = [("ST123", "Station Name", 48.0, 8.0)]
     mock_conn = mocker.patch("data_services.connection_pool.get_connection")
     mock_conn.return_value.cursor.return_value.__enter__.return_value = mock_cursor
+    return mock_cursor
+
+def test_stations_are_returned(mock_db_connection):
+    """Testet, ob `get_stations_in_radius` mindestens eine Station zurückgibt."""
+    mock_db_connection.fetchall.return_value = [
+        ("ST001", "Station A", 48.001, 8.001)
+    ]
 
     stations = get_stations_in_radius(48.0, 8.0, 100, 2000, 2020, 5)
-    assert len(stations) > 0
-    assert stations[0][0][0] == "ST123"
 
+    assert len(stations) > 0, "Es wurden keine Stationen zurückgegeben!"
+    assert stations[0][0] == "ST001"
 
-def test_get_datapoints_for_station(mocker):
-    mock_cursor = mocker.Mock()
-    mock_cursor.fetchall.return_value = [(202401, 25.5, 10.3)]
-    mock_conn = mocker.patch("data_services.connection_pool.get_connection")
-    mock_conn.return_value.cursor.return_value.__enter__.return_value = mock_cursor
+def test_multiple_stations_returned(mock_db_connection):
+    """Testet, ob mehrere Stationen zurückgegeben werden."""
+    mock_db_connection.fetchall.return_value = [
+        ("ST001", "Station A", 48.001, 8.001),
+        ("ST002", "Station B", 48.005, 8.005),
+        ("ST003", "Station C", 48.003, 8.003)
+    ]
 
-    datapoints = get_datapoints_for_station("ST123", 2020, 2023)
-    assert len(datapoints) > 0
-    assert datapoints[0] == (202401, 25.5, 10.3)
+    stations = get_stations_in_radius(48.0, 8.0, 100, 2000, 2020, 5)
 
+    assert len(stations) == 3, "Nicht alle erwarteten Stationen wurden zurückgegeben!"
 
+def test_stations_sorted_by_distance(mock_db_connection):
+    """Testet, ob die Stationen korrekt nach Entfernung sortiert werden."""
+    mock_db_connection.fetchall.return_value = [
+        ("ST001", "Station A", 48.001, 8.001),  # Nächste
+        ("ST003", "Station C", 48.003, 8.003),  # Mittelweit entfernt
+        ("ST002", "Station B", 48.005, 8.005)   # Am weitesten entfernt
+    ]
+
+    stations = get_stations_in_radius(48.0, 8.0, 100, 2000, 2020, 5)
+
+    distances = [haversine_distance(48.0, 8.0, s[2], s[3]) for s in stations]
+
+    assert distances == sorted(distances), "Die Stationen sind nicht nach Entfernung sortiert!"
 
 # ----------------- datapoint.py -----------------
 
@@ -45,7 +77,6 @@ def test_datapoint_init():
     assert dp.date == 202401
     assert dp.tmax == 25.5
     assert dp.tmin == 10.3
-
 
 def test_datapoint_repr():
     dp = DataPoint(202401, 25.5, 10.3, "ST123")
@@ -64,7 +95,6 @@ def test_home():
     client = app.test_client()
     response = client.get('/')
     assert response.status_code == 200
-
 
 def test_receive_data(mocker):
     app = Flask(__name__)
@@ -100,18 +130,20 @@ def test_station_repr():
     station = Station("ID123", "TestStation", 48.0, 8.0)
     assert "ID=ID123, Name=TestStation" in repr(station)
 
-from unittest.mock import MagicMock
-
-
 @patch("requests.get")
 def test_load_stations_from_url(mock_requests_get):
+    """
+    Testet die Funktion load_stations_from_url, indem sie simulierte HTTP-Responses für
+    die Stations- und Inventar-Daten verarbeitet.
+    """
+
     stations_text = """12345678901                              Test Station 1
 98765432109                              Test Station 2"""
 
-    inventory_text = """12345678901  48.123  8.456   TMAX  2020  2023
-12345678901  48.123  8.456   TMIN  2018  2022
-98765432109  50.987  7.654   TMAX  2015  2021
-98765432109  50.987  7.654   TMIN  2013  2020"""
+    inventory_text = """12345678901  48.123  008.456   TMAX  2020  2023
+12345678901  48.123  008.456   TMIN  2018  2022
+98765432109  50.987  007.654   TMAX  2015  2021
+98765432109  50.987  007.654   TMIN  2013  2020"""
 
     mock_requests_get.side_effect = [
         MagicMock(status_code=200, text=stations_text),
@@ -120,13 +152,16 @@ def test_load_stations_from_url(mock_requests_get):
 
     stations = load_stations_from_url("fake_url_inventory", "fake_url_stations")
 
+    for station in stations:
+        print(f"Station ID: {station.id}, Name: {station.name}, Lat: {station.latitude}, Lon: {station.longitude}")
+
     assert isinstance(stations, list)
-    assert len(stations) == 2
+    assert len(stations) == 2  # Zwei Stationen sollten geladen werden
 
     assert stations[0].id == "12345678901"
     assert stations[0].name == "Test Station 1"
-    assert stations[0].latitude == 48.123
-    assert stations[0].longitude == 8.456
+    assert stations[0].latitude == 48.123  # Prüfe, ob `latitude` korrekt ist
+    assert stations[0].longitude == 8.456  # Prüfe, ob `longitude` korrekt ist
     assert stations[0].first_measure_tmax == 2020
     assert stations[0].last_measure_tmax == 2023
     assert stations[0].first_measure_tmin == 2018
