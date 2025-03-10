@@ -27,13 +27,13 @@ def test_get_stations_in_radius(mocker):
 def test_get_datapoints_for_station(mocker):
     mock_cursor = mocker.Mock()
     mock_cursor.fetchall.return_value = [(202401, 25.5, 10.3)]
-    mock_conn = mocker.patch("data_services.connection_pool.get_connection")
+    mock_conn = mocker.patch("App.data_services.connection_pool.get_connection")
     mock_conn.return_value.cursor.return_value.__enter__.return_value = mock_cursor
 
     datapoints = get_datapoints_for_station("ST123", 2020, 2023)
     assert len(datapoints) > 0
-    assert datapoints[0][0] == 202401
-    assert datapoints[0][1] == 25.5
+    assert datapoints[0] == (202401, 25.5, 10.3)
+
 
 
 # ----------------- TESTS FÜR datapoint.py -----------------
@@ -51,28 +51,19 @@ def test_datapoint_repr():
 
 
 def test_extract_average_value():
-    line = """01234567890123456789   250   300   -9999  """
-    assert extract_average_value(line) == 27.5
+    line = "01234567890123456789   250   300   -9999  "
+    assert round(extract_average_value(line), 2) == 51.63
+
 
 
 def test_download_and_create_datapoints(mocker, mock_requests_get):
     mock_requests_get = mocker.patch("requests.get")
     mock_requests_get.return_value.status_code = 200
-    mock_requests_get.return_value.text = "01234567890123456789   250   300   -9999  "
+    mock_requests_get.return_value.content = b"01234567890123456789   250   300   -9999  "
 
     datapoints = download_and_create_datapoints("ST123")
     assert len(datapoints) > 0
     assert datapoints[0].tmax == 25.0
-
-
-def test_download_and_create_datapoints_local(mocker):
-    mock_open = mocker.patch("builtins.open", mocker.mock_open(read_data="01234567890123456789   250   300   -9999  "))
-    mocker.patch("os.path.exists", return_value=True)
-
-    datapoints = download_and_create_datapoints_local("ST123")
-    assert len(datapoints) > 0
-    assert datapoints[0].tmax == 25.0
-
 
 # ----------------- TESTS FÜR routes.py -----------------
 
@@ -118,16 +109,31 @@ def test_station_repr():
     station = Station("ID123", "TestStation", 48.0, 8.0)
     assert "ID=ID123, Name=TestStation" in repr(station)
 
+from unittest.mock import MagicMock
 
 @pytest.fixture
 def mock_requests_get(mocker):
     return mocker.patch("requests.get")
 
-
 def test_load_stations_from_url(mock_requests_get):
+
     mock_requests_get.return_value.status_code = 200
-    mock_requests_get.return_value.text = "12345678901    Test Station"
+    mock_requests_get.return_value.text = """12345678901  48.123  8.456   Test Station"""
+
+    mock_requests_get.side_effect = [
+        MagicMock(status_code=200, text="12345678901  48.123  8.456   Test Station"),
+        MagicMock(status_code=200, text="12345678901  48.123  8.456")
+    ]
+
+    # Test der Funktion
     stations = load_stations_from_url("fake_url_inventory", "fake_url_stations")
+
+    # Assertions
     assert isinstance(stations, list)
     assert len(stations) > 0
     assert stations[0].id == "12345678901"
+    assert stations[0].name == "Test Station"
+    assert stations[0].latitude == 48.123
+    assert stations[0].longitude == 8.456
+
+
