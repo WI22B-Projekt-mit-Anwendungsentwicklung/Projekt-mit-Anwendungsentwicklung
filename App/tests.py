@@ -42,7 +42,7 @@ def test_extract_average_value():
     assert extract_average_value(line1) == 18.143, f"Fehler: Erwartet 18.143, erhalten {extract_average_value(line1)}"
 
     # Testfall 2: Kein gültiger Wert
-    line2 = "AO000066422195501TMAX-9999   -9999   -9999   -9999   -9999   -9999   -9999   -9999   -9999   -9999   -9999   -9999   -9999   -9999   -9999   -9999   -9999   -9999   -9999   -9999   -9999   -9999   -9999   -9999   -9999   -9999   -9999     -9999   -9999   -9999   -9999"
+    line2 = "AO000066422195501TMAX-9999   -9999   -9999   -9999   -9999   -9999   -9999   -9999   -9999   -9999   -9999   -9999   -9999   -9999   -9999   -9999   -9999   -9999   -9999   -9999   -9999   -9999   -9999   -9999   -9999   -9999   -9999   -9999   -9999   -9999   -9999"
     assert extract_average_value(line2) == 0, f"Fehler: Erwartet 0, erhalten {extract_average_value(line2)}"
 
     # Testfall 3: Nur ein gültiger Wert
