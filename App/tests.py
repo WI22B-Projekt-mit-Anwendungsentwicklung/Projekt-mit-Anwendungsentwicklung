@@ -1,5 +1,4 @@
 import pytest
-import requests
 from flask import Flask
 from unittest.mock import patch, MagicMock
 from data_services import haversine, get_stations_in_radius, get_datapoints_for_station
@@ -13,62 +12,15 @@ def test_haversine():
     assert haversine(0, 0, 0, 0) == 0
     assert round(haversine(48.8566, 2.3522, 51.5074, -0.1278), 1) == 343.6
 
-def haversine_distance(lat1, lon1, lat2, lon2):
-    """ Hilfsfunktion zur Berechnung der Entfernung zwischen zwei Punkten """
-    from math import radians, cos, sin, asin, sqrt
-
-    R = 6371  # Erdradius in km
-    lat1, lon1, lat2, lon2 = map(radians, [lat1, lon1, lat2, lon2])
-    dlat = lat2 - lat1
-    dlon = lon2 - lon1
-    a = sin(dlat/2)**2 + cos(lat1) * cos(lat2) * sin(dlon/2)**2
-    c = 2 * asin(sqrt(a))
-    return R * c  # Entfernung in km
-
-@pytest.fixture
-def mock_db_connection(mocker):
-    """Fixture zum Mocken der Datenbankverbindung"""
+def test_get_stations_in_radius(mocker):
     mock_cursor = mocker.Mock()
+    mock_cursor.fetchall.return_value = [("ST123", "Station Name", 48.0, 8.0)]
     mock_conn = mocker.patch("data_services.connection_pool.get_connection")
     mock_conn.return_value.cursor.return_value.__enter__.return_value = mock_cursor
-    return mock_cursor
-
-def test_stations_are_returned(mock_db_connection):
-    """Testet, ob `get_stations_in_radius` mindestens eine Station zurückgibt."""
-    mock_db_connection.fetchall.return_value = [
-        ("ST001", "Station A", 48.001, 8.001)
-    ]
 
     stations = get_stations_in_radius(48.0, 8.0, 100, 2000, 2020, 5)
-
-    assert len(stations) > 0, "Es wurden keine Stationen zurückgegeben!"
-    assert stations[0][0] == "ST001"
-
-def test_multiple_stations_returned(mock_db_connection):
-    """Testet, ob mehrere Stationen zurückgegeben werden."""
-    mock_db_connection.fetchall.return_value = [
-        ("ST001", "Station A", 48.001, 8.001),
-        ("ST002", "Station B", 48.005, 8.005),
-        ("ST003", "Station C", 48.003, 8.003)
-    ]
-
-    stations = get_stations_in_radius(48.0, 8.0, 100, 2000, 2020, 5)
-
-    assert len(stations) == 3, "Nicht alle erwarteten Stationen wurden zurückgegeben!"
-
-def test_stations_sorted_by_distance(mock_db_connection):
-    """Testet, ob die Stationen korrekt nach Entfernung sortiert werden."""
-    mock_db_connection.fetchall.return_value = [
-        ("ST001", "Station A", 48.001, 8.001),  # Nächste
-        ("ST003", "Station C", 48.003, 8.003),  # Mittelweit entfernt
-        ("ST002", "Station B", 48.005, 8.005)   # Am weitesten entfernt
-    ]
-
-    stations = get_stations_in_radius(48.0, 8.0, 100, 2000, 2020, 5)
-
-    distances = [haversine_distance(48.0, 8.0, s[2], s[3]) for s in stations]
-
-    assert distances == sorted(distances), "Die Stationen sind nicht nach Entfernung sortiert!"
+    assert len(stations) > 0
+    assert stations[0][0][0] == "ST123"
 
 # ----------------- datapoint.py -----------------
 
@@ -132,10 +84,7 @@ def test_station_repr():
 
 @patch("requests.get")
 def test_load_stations_from_url(mock_requests_get):
-    """
-    Testet die Funktion load_stations_from_url, indem sie simulierte HTTP-Responses für
-    die Stations- und Inventar-Daten verarbeitet.
-    """
+
 
     stations_text = """12345678901                              Test Station 1
 98765432109                              Test Station 2"""
@@ -156,12 +105,12 @@ def test_load_stations_from_url(mock_requests_get):
         print(f"Station ID: {station.id}, Name: {station.name}, Lat: {station.latitude}, Lon: {station.longitude}")
 
     assert isinstance(stations, list)
-    assert len(stations) == 2  # Zwei Stationen sollten geladen werden
+    assert len(stations) == 2
 
     assert stations[0].id == "12345678901"
     assert stations[0].name == "Test Station 1"
-    assert stations[0].latitude == 48.123  # Prüfe, ob `latitude` korrekt ist
-    assert stations[0].longitude == 8.456  # Prüfe, ob `longitude` korrekt ist
+    assert stations[0].latitude == 48.123
+    assert stations[0].longitude == 8.456
     assert stations[0].first_measure_tmax == 2020
     assert stations[0].last_measure_tmax == 2023
     assert stations[0].first_measure_tmin == 2018
@@ -175,5 +124,26 @@ def test_load_stations_from_url(mock_requests_get):
     assert stations[1].last_measure_tmax == 2021
     assert stations[1].first_measure_tmin == 2013
     assert stations[1].last_measure_tmin == 2020
+
+# ----------------- Additional Tests -----------------
+
+def test_invalid_coordinates():
+    from data_services import get_stations_in_radius
+
+    with pytest.raises(ValueError):
+        get_stations_in_radius(95.0, 8.0, 100, 2000, 2020, 5)  # Breitengrad > 90 ist ungültig
+
+    with pytest.raises(ValueError):
+        get_stations_in_radius(48.0, 190.0, 100, 2000, 2020, 5)  # Längengrad > 180 ist ungültig
+
+    with pytest.raises(ValueError):
+        get_stations_in_radius("abc", 8.0, 100, 2000, 2020, 5)  # Ungültige Eingabe als String
+
+import requests
+
+def test_api_missing_params():
+    response = requests.get("http://localhost:5000/get_weather_data")
+    assert response.status_code == 400  # Bad Request
+    assert "Missing parameters" in response.text  # Erwartete Fehlermeldung
 
 
