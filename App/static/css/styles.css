@@ -442,6 +442,20 @@ table th {
     background-color: var(--table-background-color);
 }
 
+table thead th {
+    position: sticky;
+    top: 0;
+    background-color: var(--table-background-color);
+    z-index: 2;
+}
+
+table tbody td:first-child,
+table thead th:first-child {
+    position: sticky;
+    left: 0;
+    background-color: var(--table-background-color);
+    z-index: 3;
+}
 
 .custom-marker {
     position: relative;
