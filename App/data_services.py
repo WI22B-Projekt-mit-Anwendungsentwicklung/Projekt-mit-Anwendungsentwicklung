@@ -22,6 +22,66 @@ connection_pool = pooling.MySQLConnectionPool(
     **dbconfig
 )
 
+
+def save_data_to_db():
+    """
+    Populates the "Station" and "Datapoint" tables in the database if they are empty
+    by loading and inserting data from an external URL.
+
+    :return: No return value, performs database operations.
+    """
+
+    connection = connection_pool.get_connection()
+
+    try:
+        with connection.cursor() as cursor:
+
+            cursor.execute("SELECT * FROM Station;")
+            inhalt_station = cursor.fetchall()
+            if not inhalt_station:
+                stations = st.load_stations_from_url(
+                    "https://www1.ncdc.noaa.gov/pub/data/ghcn/daily/ghcnd-inventory.txt",
+                    "https://www1.ncdc.noaa.gov/pub/data/ghcn/daily/ghcnd-stations.txt")
+                for station in stations:
+                    cursor.execute(
+                        """
+                        INSERT INTO Station (station_id, station_name, latitude, longitude, first_tmax, latest_tmax, 
+                        first_tmin, latest_tmin)
+                        VALUES (%s,%s, %s, %s, %s, %s, %s, %s);
+                        """,
+                        (station.id, station.name, station.latitude, station.longitude, station.first_measure_tmax,
+                         station.last_measure_tmax, station.first_measure_tmin, station.last_measure_tmin))
+                connection.commit()
+
+                cursor.execute("SELECT * FROM Station;")
+                inhalt_station = cursor.fetchall()
+
+            else:
+                print("Station already filled.")
+
+            cursor.execute("SELECT * FROM Datapoint LIMIT 1;")
+            inhalt_datapoint = cursor.fetchall()
+
+            if not inhalt_datapoint:
+                for station in inhalt_station:
+                    datapoints = dp.download_and_create_datapoints(station[1])
+                    foreign_key = station[0]
+                    for datapoint in datapoints:
+                        cursor.execute(
+                            """
+                            INSERT INTO Datapoint (SID, year, month, tmax, tmin)
+                            VALUES (%s, %s, %s, %s, %s);
+                            """,
+                            (foreign_key, str(datapoint.date)[:4], str(datapoint.date)[-2:],
+                             datapoint.tmax, datapoint.tmin))
+                connection.commit()
+            else:
+                print("Datapoint already filled.")
+    finally:
+        cursor.close()
+        connection.close()
+
+
 def find_stations_within_radius(stations, latitude, longitude, radius, max_stations):
     """
     Finds all stations within a specified radius around a given coordinate.
@@ -68,64 +128,6 @@ def haversine(lat1, lon1, lat2, lon2):
     c = 2 * atan2(sqrt(a), sqrt(1 - a))
     return r * c
 
-def save_data_to_db():
-    """
-    Populates the "Station" and "Datapoint" tables in the database if they are empty
-    by loading and inserting data from an external URL.
-
-    :return: No return value, performs database operations.
-    """
-
-    inhalt_station = []
-    connection = connection_pool.get_connection()
-    
-    try:
-        with connection.cursor() as cursor:
-
-            cursor.execute("SELECT * FROM Station;")
-            inhalt_station = cursor.fetchall()
-            if not inhalt_station:
-                stations = st.load_stations_from_url(
-                    "https://www1.ncdc.noaa.gov/pub/data/ghcn/daily/ghcnd-inventory.txt",
-                    "https://www1.ncdc.noaa.gov/pub/data/ghcn/daily/ghcnd-stations.txt")
-                for station in stations:
-                    cursor.execute(
-                        """
-                        INSERT INTO Station (station_id, station_name, latitude, longitude, first_tmax, latest_tmax, 
-                        first_tmin, latest_tmin)
-                        VALUES (%s,%s, %s, %s, %s, %s, %s, %s);
-                        """,
-                        (station.id, station.name, station.latitude, station.longitude, station.first_measure_tmax,
-                         station.last_measure_tmax, station.first_measure_tmin, station.last_measure_tmin))
-                connection.commit()
-
-                cursor.execute("SELECT * FROM Station;")
-                inhalt_station = cursor.fetchall()
-                
-            else:
-                print("Station already filled.")
-
-            cursor.execute("SELECT * FROM Datapoint LIMIT 1;")
-            inhalt_datapoint = cursor.fetchall()
-
-            if not inhalt_datapoint:
-                for station in inhalt_station:
-                    datapoints = dp.download_and_create_datapoints(station[1])
-                    foreign_key = station[0]
-                    for datapoint in datapoints:
-                        cursor.execute(
-                            """
-                            INSERT INTO Datapoint (SID, year, month, tmax, tmin)
-                            VALUES (%s, %s, %s, %s, %s);
-                            """,
-                            (foreign_key, str(datapoint.date)[:4], str(datapoint.date)[-2:],
-                             datapoint.tmax, datapoint.tmin))
-                connection.commit()
-            else:
-                print("Datapoint already filled.")
-    finally:
-        cursor.close()
-        connection.close()
 
 def get_stations_in_radius(latitude, longitude, radius, first_year, last_year, max_stations):
     """
@@ -163,6 +165,7 @@ def get_stations_in_radius(latitude, longitude, radius, first_year, last_year, m
         connection.close()
 
     return stations_in_radius  # (('GMM00010591', 50.933, 14.217), 66.85437995060985)
+
 
 def get_datapoints_for_station(station_id, first_year, last_year):
     """
