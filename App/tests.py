@@ -1,9 +1,9 @@
 import pytest
 from flask import Flask
-from App.data_services import haversine, get_stations_in_radius, get_datapoints_for_station
-from App.datapoint import DataPoint, extract_average_value, download_and_create_datapoints, download_and_create_datapoints_local
-from App.routes import init_routes
-from App.station import Station, load_stations_from_url
+from data_services import haversine, get_stations_in_radius, get_datapoints_for_station
+from datapoint import DataPoint, extract_average_value, download_and_create_datapoints, download_and_create_datapoints_local
+from routes import init_routes
+from station import Station, load_stations_from_url
 
 
 # ----------------- TESTS FÜR data_services.py -----------------
