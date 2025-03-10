@@ -4,6 +4,5 @@ WORKDIR /app
 COPY ./requirements.txt /app/requirements.txt
 RUN pip install --no-cache-dir -r requirements.txt
 COPY . /app
-COPY ./Tests/ /app/Tests/
 RUN chmod +x /app/Tests/wait-for-app.sh
-CMD ["python", "run.py"]
+CMD ["sh", "-c", "./Tests/wait-for-app.sh && python run.py"]

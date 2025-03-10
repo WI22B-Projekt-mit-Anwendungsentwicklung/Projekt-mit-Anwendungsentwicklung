@@ -5,5 +5,7 @@ while ! curl -s http://0.0.0.0:8000/ > /dev/null; do
   sleep 1
 done
 echo "Flask app is ready! Running tests..."
+export PYTHONPATH=/app
 
 pytest /app/Tests/
+
