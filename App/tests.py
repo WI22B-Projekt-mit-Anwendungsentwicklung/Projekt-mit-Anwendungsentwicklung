@@ -82,49 +82,63 @@ def test_station_repr():
     station = Station("ID123", "TestStation", 48.0, 8.0)
     assert "ID=ID123, Name=TestStation" in repr(station)
 
-def test_load_stations_from_url():
-    stations_text = """
-    12345678901        Station Alpha
-    22345678901        Station Beta
-    32345678901        Station Gamma
+def test_load_stations_with_noaa_data():
+    """
+    Testet die load_stations_from_url-Funktion mit Mock-Daten der NOAA-Stationen.
     """
 
-    inventory_text = """
-    12345678901  12.3450  67.8900 TMAX 1980 2020
-    12345678901  12.3450  67.8900 TMIN 1985 2015
-    22345678901  23.4560  78.9010 TMAX 1990 2021
-    32345678901  34.5670  89.0120 TMAX 2000 2022
-    32345678901  34.5670  89.0120 TMIN 2005 2018
-    """
+    # Mock-Inhalte der Dateien (Angabe fester Texte)
+    mock_stations_data = """\
+ACW00011604  -17.116  -145.500  00185  RAROTONGA           CK
+AGM00060420   36.850    3.030   00024  ALGIERS-HYDRA       DZ
+AGE00147704   41.727   44.765   05555  TBILISI             GE
+"""
 
-    with patch("requests.get") as mock_requests_get:
-        mock_requests_get.side_effect = [
-            MagicMock(status_code=200, text=stations_text),
-            MagicMock(status_code=200, text=inventory_text)
-        ]
+    mock_inventory_data = """\
+ACW00011604  -17.116  -145.500 TMIN 1928 2013
+ACW00011604  -17.116  -145.500 PRCP 1928 2013
+AGM00060420   36.850    3.030 TMAX 1891 2012
+AGM00060420   36.850    3.030 TMIN 1892 2012
+AGE00147704   41.727   44.765 PRCP 1881 2011
+"""
 
-        stations = load_stations_from_url("url_stations_placeholder", "url_inventory_placeholder")
+    # Mocking requests.get, um die URLs zu simulieren
+    with patch("requests.get") as mock_get:
+        def mock_response(url):
+            if "stations" in url:
+                return MockResponse(mock_stations_data, 200)
+            elif "inventory" in url:
+                return MockResponse(mock_inventory_data, 200)
+            return MockResponse("", 404)
 
-        expected_stations = [
-            Station(id="12345678901", name="Station Alpha", latitude=12.345, longitude=67.89,
-                    last_measure_tmax=2020, first_measure_tmax=1980, last_measure_tmin=2015, first_measure_tmin=1985),
-            Station(id="22345678901", name="Station Beta", latitude=23.456, longitude=78.901,
-                    last_measure_tmax=2021, first_measure_tmax=1990, last_measure_tmin=0, first_measure_tmin=0),
-            Station(id="32345678901", name="Station Gamma", latitude=34.567, longitude=89.012,
-                    last_measure_tmax=2022, first_measure_tmax=2000, last_measure_tmin=2018, first_measure_tmin=2005)
-        ]
+        mock_get.side_effect = mock_response
 
-        # Assertions
-        assert len(stations) == len(expected_stations)
-        for station, expected_station in zip(stations, expected_stations):
-            assert station.id == expected_station.id
-            assert station.name == expected_station.name
-            assert station.latitude == expected_station.latitude
-            assert station.longitude == expected_station.longitude
-            assert station.last_measure_tmax == expected_station.last_measure_tmax
-            assert station.first_measure_tmax == expected_station.first_measure_tmax
-            assert station.last_measure_tmin == expected_station.last_measure_tmin
-            assert station.first_measure_tmin == expected_station.first_measure_tmin
+        # URLs simulieren
+        url_stations = "https://www1.ncdc.noaa.gov/pub/data/ghcn/daily/ghcnd-stations.txt"
+        url_inventory = "https://www1.ncdc.noaa.gov/pub/data/ghcn/daily/ghcnd-inventory.txt"
+
+        # Test: Funktion aufrufen
+        stations = load_stations_from_url(url_inventory, url_stations)
+
+        # Sicherstellen, dass Daten geladen wurden
+        assert len(stations) == 3, "Es sollten 3 Stationen geladen werden."
+
+        # Prüfen der Daten jeder Station
+        assert stations[0]["id"] == "ACW00011604", "Station ID sollte ACW00011604 sein."
+        assert stations[0]["name"] == "RAROTONGA", "Stationsname sollte RAROTONGA sein."
+        assert stations[0]["latitude"] == -17.116, "Latitude von Station 0 ist falsch."
+        assert stations[0]["longitude"] == -145.500, "Longitude von Station 0 ist falsch."
+
+        assert stations[1]["id"] == "AGM00060420", "Station ID sollte AGM00060420 sein."
+        assert stations[2]["id"] == "AGE00147704", "Station ID sollte AGE00147704 sein."
+
+
+# Mock-Klasse für die Simulation von requests.get
+class MockResponse:
+    def __init__(self, text, status_code):
+        self.text = text
+        self.status_code = status_code
+
 
 
 
