@@ -6,4 +6,4 @@ while ! curl -s http://localhost:8000/ > /dev/null; do
 done
 echo "✅ Flask app is ready! Running tests..."
 
-pytest App/Tests/
+pytest /app/Tests/
