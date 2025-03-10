@@ -14,15 +14,33 @@ def test_haversine():
     assert haversine(0, 0, 0, 0) == 0
     assert round(haversine(48.8566, 2.3522, 51.5074, -0.1278), 1) == 343.6
 
+
 def test_get_stations_in_radius(mocker):
     mock_cursor = mocker.Mock()
-    mock_cursor.fetchall.return_value = [("ST123", "Station Name", 48.0, 8.0)]
+    mock_cursor.fetchall.return_value = [
+        ("ST123", "Station A", 48.0, 8.0),
+        ("ST456", "Station B", 48.1, 8.1),
+        ("ST789", "Station C", 49.0, 9.0),
+    ]
+
     mock_conn = mocker.patch("data_services.connection_pool.get_connection")
     mock_conn.return_value.cursor.return_value.__enter__.return_value = mock_cursor
 
-    stations = get_stations_in_radius(48.0, 8.0, 100, 2000, 2020, 5)
-    assert len(stations) > 0
-    assert stations[0][0][0] == "ST123"
+    # Mock `haversine` um feste Entfernungen zurückzugeben
+    mocker.patch("data_services.haversine", side_effect=[10.5, 5.0, 50.0])
+
+    stations = get_stations_in_radius(48.0, 8.0, 100, 2000, 2020, 3)
+
+    # 1. Test: Es sollten genau 3 Stationen gefunden werden
+    assert len(stations) == 3, f"Fehler: Erwartet 3 Stationen, erhalten {len(stations)}"
+
+    # 2. Test: Die Stationen sollten nach Entfernung sortiert sein
+    expected_order = ["ST456", "ST123", "ST789"]  # Sortiert nach mockerten Distanzen
+    actual_order = [station[0][0] for station in stations]  # Extrahiere die Station-IDs
+
+    assert actual_order == expected_order, f"Fehler: Erwartete Reihenfolge {expected_order}, erhalten {actual_order}"
+
+    print("Test erfolgreich bestanden!")
 
 # ----------------- datapoint.py -----------------
 
