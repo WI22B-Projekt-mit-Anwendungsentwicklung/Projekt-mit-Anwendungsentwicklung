@@ -83,15 +83,19 @@ def test_station_repr():
     assert "ID=ID123, Name=TestStation" in repr(station)
 
 def test_load_stations_from_url():
-    stations_text = """12345678901        Station Alpha
-22345678901        Station Beta
-32345678901        Station Gamma"""
+    stations_text = """
+    12345678901        Station Alpha
+    22345678901        Station Beta
+    32345678901        Station Gamma
+    """
 
-    inventory_text = """12345678901  12.345   67.890 TMAX 1980 2020
-12345678901  12.345   67.890 TMIN 1985 2015
-22345678901  23.456   78.901 TMAX 1990 2021
-32345678901  34.567   89.012 TMAX 2000 2022
-32345678901  34.567   89.012 TMIN 2005 2018"""
+    inventory_text = """
+    12345678901  12.3450  67.8900 TMAX 1980 2020
+    12345678901  12.3450  67.8900 TMIN 1985 2015
+    22345678901  23.4560  78.9010 TMAX 1990 2021
+    32345678901  34.5670  89.0120 TMAX 2000 2022
+    32345678901  34.5670  89.0120 TMIN 2005 2018
+    """
 
     with patch("requests.get") as mock_requests_get:
         mock_requests_get.side_effect = [
@@ -102,7 +106,7 @@ def test_load_stations_from_url():
         stations = load_stations_from_url("url_stations_placeholder", "url_inventory_placeholder")
 
         expected_stations = [
-            Station(id="12345678901", name="Station Alpha", latitude=12.345, longitude=67.890,
+            Station(id="12345678901", name="Station Alpha", latitude=12.345, longitude=67.89,
                     last_measure_tmax=2020, first_measure_tmax=1980, last_measure_tmin=2015, first_measure_tmin=1985),
             Station(id="22345678901", name="Station Beta", latitude=23.456, longitude=78.901,
                     last_measure_tmax=2021, first_measure_tmax=1990, last_measure_tmin=0, first_measure_tmin=0),
@@ -110,6 +114,7 @@ def test_load_stations_from_url():
                     last_measure_tmax=2022, first_measure_tmax=2000, last_measure_tmin=2018, first_measure_tmin=2005)
         ]
 
+        # Assertions
         assert len(stations) == len(expected_stations)
         for station, expected_station in zip(stations, expected_stations):
             assert station.id == expected_station.id
@@ -120,6 +125,7 @@ def test_load_stations_from_url():
             assert station.first_measure_tmax == expected_station.first_measure_tmax
             assert station.last_measure_tmin == expected_station.last_measure_tmin
             assert station.first_measure_tmin == expected_station.first_measure_tmin
+
 
 
 # ----------------- Additional Tests -----------------
