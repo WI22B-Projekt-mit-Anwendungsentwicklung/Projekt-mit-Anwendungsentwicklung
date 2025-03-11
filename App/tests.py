@@ -224,10 +224,10 @@ def mock_extract_average_value():
 
 @mock.patch("os.path.exists", return_value=True)  # Mock file existence
 @mock.patch("builtins.open", new_callable=mock.mock_open, read_data=
-    "ACW00011604194901TMAX  289  X  289  X  283  X  283  X  289  X  289  X  278  X  267  X  272  X  278  X  267  X  278  X  267  X  267  X  278  X  267  X  267  X  272  X  272  X  272  X  278  X  272  X  267  X  267  X  267  X  278  X  272  X  272  X  272  X  272  X  272  X\n"
-    "ACW00011604194901TMIN  217  X  228  X  222  X  233  X  222  X  222  X  228  X  217  X  222  X  183  X  189  X  194  X  161  X  183  X  178  X  222  X  211  X  211  X  194  X  217  X  217  X  217  X  211  X  211  X  200  X  222  X  217  X  211  X  222  X  206  X  217  X\n"
+    "ACW00011604194901TMAX  289  X  289  X  283  X  283  X  289  X  289  X  278  X  267  X  272  X  278  X  267  X\n"
+    "ACW00011604194901TMIN  217  X  228  X  222  X  233  X  222  X  222  X  228  X  217  X  222  X  183  X  189  X\n"
 )
-def test_download_and_create_datapoints_local_file_exists(mock_open, mock_path_exists, mock_extract_average_value):
+def test_download_and_create_datapoints_local_file_exists(mock_path_exists, mock_open, mock_extract_average_value):
     """Tests if data is correctly extracted when the file exists"""
 
     station_id = "ACW00011604194901"
@@ -235,12 +235,13 @@ def test_download_and_create_datapoints_local_file_exists(mock_open, mock_path_e
 
     # Ensure the function returns the expected list of DataPoint objects
     assert len(datapoints) == 1, f"Error: Expected 1 data point, got {len(datapoints)}"
-    assert datapoints[0].date == 194901
-    assert datapoints[0].tmax == 27.23
-    assert datapoints[0].tmin == 21.02
-    assert datapoints[0].station == station_id
+    assert datapoints[0].date == 194901, f"Error: Expected date 194901, got {datapoints[0].date}"
+    assert datapoints[0].tmax == 27.23, f"Error: Expected tmax 27.23, got {datapoints[0].tmax}"
+    assert datapoints[0].tmin == 21.02, f"Error: Expected tmin 21.02, got {datapoints[0].tmin}"
+    assert datapoints[0].station == station_id, f"Error: Expected station {station_id}, got {datapoints[0].station}"
 
-    print("Test passed: File exists and data is extracted correctly")
+    print("✅ Test passed: File exists and data is extracted correctly")
+
 
 
 @mock.patch("os.path.exists", return_value=False)  # Mock file does NOT exist
