@@ -189,7 +189,7 @@ def test_get_weather_data(client, mocker):
         [("2020", -1.7)], [("2020", 5.2)]    # Winter Tmin & Tmax
     ])
 
-    response = client.post("/getWeatherData", json={
+    response = client.post("/get_weather_data", json={
         "stationName": "ST123",
         "yearStart": 2020,
         "yearEnd": 2020
