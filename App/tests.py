@@ -357,13 +357,15 @@ def test_get_datapoints_for_station_real_db(db_cursor):
             f"Year mismatch! Expected: {expected_year}, Received: {result_year}"
         )
 
-        # Verify the value with an allowed deviation of 0.1
-        assert abs(expected_value - result_value) <= 0.1, (
-            f"Deviation too large in Dataset {i + 1}: "
-            f"Expected {expected_value}, Received {result_value} "
-            f"(Difference: {abs(expected_value - result_value)})"
-        )
+        # Runde den erhaltenen Wert aus der Datenbank auf zwei Nachkommastellen
+        rounded_result_value = round(result_value, 2)
 
+        # Verify the value after rounding
+        assert rounded_result_value == expected_value, (
+            f"Deviation too large in Dataset {i + 1}: "
+            f"Expected {expected_value}, Received {rounded_result_value} "
+            f"(Original: {result_value})"
+        )
 
 # ----------------- routes.py -----------------
 
