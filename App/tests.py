@@ -1,7 +1,7 @@
 import pytest
 from flask import Flask
 import requests
-from data_services import haversine, get_stations_in_radius, get_datapoints_for_station
+from data_services import haversine, get_stations_in_radius, get_datapoints_for_station, find_stations_within_radius
 from datapoint import DataPoint, extract_average_value, download_and_create_datapoints, download_and_create_datapoints_local
 from routes import init_routes
 from station import Station
@@ -51,8 +51,6 @@ def test_haversine():
     assert haversine(0, 0, 0, 0) == 0
     assert round(haversine(48.8566, 2.3522, 51.5074, -0.1278), 1) == 343.6
 
-import pytest
-from data_services import haversine
 
 def test_haversine_extreme_cases():
     """Test haversine with real extreme cases"""
@@ -81,10 +79,6 @@ def test_haversine_extreme_cases():
     print("All extreme cases for haversine() successfully tested!")
 
 
-from data_services import find_stations_within_radius, haversine
-
-from data_services import find_stations_within_radius, haversine
-
 def test_find_stations_within_radius():
     """Tests if the function correctly finds stations within the given radius"""
 
@@ -106,6 +100,7 @@ def test_find_stations_within_radius():
         assert distance <= radius, f"Error: Station {station[0]} is outside the radius ({distance} km)"
 
     print("find_stations_within_radius() test passed!")
+
 
 def test_get_stations_in_radius(mocker):
     # Mock database query results
@@ -226,7 +221,7 @@ def test_get_weather_data(client, mocker):
         [("2020", -1.7)], [("2020", 5.2)]    # Winter Tmin & Tmax
     ])
 
-    # ✅ Test valid request
+    # Test valid request
     response = client.post("/get_weather_data", json={
         "stationName": "ST123",
         "yearStart": 2020,
@@ -265,7 +260,7 @@ def test_get_weather_data(client, mocker):
     assert response.status_code == 400, f"Expected 400, got {response.status_code}"
     assert response.get_json() == {"message": "Fehlende Parameter"}
 
-    print("✅ get_weather_data() test passed with missing parameter checks!")
+    print("get_weather_data() test passed with missing parameter checks!")
 
 
 # ----------------- station.py -----------------
