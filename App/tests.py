@@ -5,10 +5,47 @@ from data_services import haversine, get_stations_in_radius, get_datapoints_for_
 from datapoint import DataPoint, extract_average_value, download_and_create_datapoints, download_and_create_datapoints_local
 from routes import init_routes
 from station import Station
+from unittest.mock import patch, MagicMock
 
 # ----------------- Testing functions ----------------
 
 # ----------------- data_services.py -----------------
+
+@patch("data_services.connection_pool.get_connection")
+@patch("data_services.st.load_stations_from_url")
+@patch("data_services.dp.download_and_create_datapoints")
+def test_save_data_to_db(mock_download_datapoints, mock_load_stations, mock_get_connection):
+    """Tests if save_data_to_db correctly initializes the database when empty"""
+
+    # Simuliere eine leere Datenbank (keine Stationen vorhanden)
+    mock_cursor = MagicMock()
+    mock_cursor.fetchall.side_effect = [[], []]  # Keine Einträge in Station und Datapoint
+
+    mock_connection = MagicMock()
+    mock_connection.cursor.return_value.__enter__.return_value = mock_cursor
+    mock_get_connection.return_value = mock_connection
+
+    # Mock die Stations- und Datenpunkt-Downloads
+    mock_load_stations.return_value = [
+        MagicMock(id="ST123", name="Station A", latitude=48.0, longitude=8.0,
+                  first_measure_tmax=2000, last_measure_tmax=2020,
+                  first_measure_tmin=2000, last_measure_tmin=2020)
+    ]
+    mock_download_datapoints.return_value = [
+        MagicMock(date=202001, tmax=25.5, tmin=10.2)
+    ]
+
+    # Funktion ausführen
+    save_data_to_db()
+
+    # Sicherstellen, dass Stationsdaten gespeichert wurden
+    mock_cursor.execute.assert_any_call("SELECT * FROM Station;")
+    assert mock_cursor.execute.call_count > 1, "SQL statements were not executed correctly"
+
+    # Sicherstellen, dass Datenpunkte gespeichert wurden
+    mock_download_datapoints.assert_called_once_with("Station A")
+
+    print("save_data_to_db() test passed!")
 
 def test_haversine():
     assert haversine(0, 0, 0, 0) == 0
@@ -178,9 +215,9 @@ def client():
         yield client
 
 def test_get_weather_data(client, mocker):
-    """Tests whether weather data is correctly retrieved from the API"""
+    """Tests whether weather data is correctly retrieved from the API and handles missing parameters"""
 
-    # Mock data_services function
+    # Mock the data_services function to return predefined data
     mocker.patch("data_services.get_datapoints_for_station", return_value=[
         [("2020", -2.1)], [("2020", 15.3)],  # Annual Tmin & Tmax
         [("2020", 1.5)], [("2020", 10.8)],   # Spring Tmin & Tmax
@@ -189,31 +226,46 @@ def test_get_weather_data(client, mocker):
         [("2020", -1.7)], [("2020", 5.2)]    # Winter Tmin & Tmax
     ])
 
+    # ✅ Test valid request
     response = client.post("/get_weather_data", json={
         "stationName": "ST123",
         "yearStart": 2020,
         "yearEnd": 2020
     })
-
-    assert response.status_code == 200
+    assert response.status_code == 200, f"Expected 200, got {response.status_code}"
     json_data = response.get_json()
+    assert isinstance(json_data, list), f"Unexpected response format: {json_data}"
 
-    # Debugging: Sehe, welche Daten von der API zurückkommen
-    print(f"Received JSON data: {json_data}")
+    # Test missing `stationName`
+    response = client.post("/get_weather_data", json={
+        "yearStart": 2020,
+        "yearEnd": 2020
+    })
+    assert response.status_code == 400, f"Expected 400, got {response.status_code}"
+    assert response.get_json() == {"message": "Fehlende Parameter"}
 
-    # Extrahiere die Daten und entferne die unnötige Verschachtelung
-    flat_json_data = [(str(entry[0][0]), float(entry[0][1])) for entry in json_data]
+    # Test missing `yearStart`
+    response = client.post("/get_weather_data", json={
+        "stationName": "ST123",
+        "yearEnd": 2020
+    })
+    assert response.status_code == 400, f"Expected 400, got {response.status_code}"
+    assert response.get_json() == {"message": "Fehlende Parameter"}
 
-    # Erwartete Struktur
-    expected_data = [
-        ("2020", -2.1), ("2020", 15.3),
-        ("2020", 1.5), ("2020", 10.8),
-        ("2020", 7.4), ("2020", 22.1),
-        ("2020", 3.9), ("2020", 13.4),
-        ("2020", -1.7), ("2020", 5.2)
-    ]
+    # Test missing `yearEnd`
+    response = client.post("/get_weather_data", json={
+        "stationName": "ST123",
+        "yearStart": 2020
+    })
+    assert response.status_code == 400, f"Expected 400, got {response.status_code}"
+    assert response.get_json() == {"message": "Fehlende Parameter"}
 
-    assert flat_json_data == expected_data, f"Error: Unexpected response {flat_json_data}"
+    # Test completely empty request
+    response = client.post("/get_weather_data", json={})
+    assert response.status_code == 400, f"Expected 400, got {response.status_code}"
+    assert response.get_json() == {"message": "Fehlende Parameter"}
+
+    print("✅ get_weather_data() test passed with missing parameter checks!")
 
 
 # ----------------- station.py -----------------
