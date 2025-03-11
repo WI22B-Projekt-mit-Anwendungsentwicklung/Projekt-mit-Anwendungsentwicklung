@@ -217,6 +217,50 @@ def mock_db_cursor(mocker):
 
 
 @pytest.fixture
+def mock_extract_average_value():
+    """Mock the extract_average_value function to return predefined values"""
+    with mock.patch("datapoint.extract_average_value", side_effect=[27.23, 21.02]):
+        yield
+
+@mock.patch("os.path.exists", return_value=True)  # Mock file existence
+@mock.patch("builtins.open", new_callable=mock.mock_open, read_data=
+    "ACW00011604194901TMAX  289  X  289  X  283  X  283  X  289  X  289  X  278  X  267  X  272  X  278  X  267  X  278  X  267  X  267  X  278  X  267  X  267  X  272  X  272  X  272  X  278  X  272  X  267  X  267  X  267  X  278  X  272  X  272  X  272  X  272  X  272  X\n"
+    "ACW00011604194901TMIN  217  X  228  X  222  X  233  X  222  X  222  X  228  X  217  X  222  X  183  X  189  X  194  X  161  X  183  X  178  X  222  X  211  X  211  X  194  X  217  X  217  X  217  X  211  X  211  X  200  X  222  X  217  X  211  X  222  X  206  X  217  X\n"
+)
+def test_download_and_create_datapoints_local_file_exists(mock_open, mock_path_exists, mock_extract_average_value):
+    """Tests if data is correctly extracted when the file exists"""
+
+    station_id = "ACW00011604194901"
+    datapoints = download_and_create_datapoints_local(station_id)
+
+    # Ensure the function returns the expected list of DataPoint objects
+    assert len(datapoints) == 1, f"Error: Expected 1 data point, got {len(datapoints)}"
+    assert datapoints[0].date == 194901
+    assert datapoints[0].tmax == 27.23
+    assert datapoints[0].tmin == 21.02
+    assert datapoints[0].station == station_id
+
+    print("Test passed: File exists and data is extracted correctly")
+
+
+@mock.patch("os.path.exists", return_value=False)  # Mock file does NOT exist
+@mock.patch("builtins.print")  # Mock print to suppress output
+def test_download_and_create_datapoints_local_file_not_found(mock_print, mock_path_exists):
+    """Tests the behavior when the file does not exist"""
+
+    station_id = "UNKNOWN_STATION"
+    datapoints = download_and_create_datapoints_local(station_id)
+
+    # Ensure the function returns an empty list
+    assert datapoints == [], "Error: Expected an empty list when the file is missing"
+
+    # Ensure the error message is printed
+    mock_print.assert_called_once_with(f"Error: File /data/ghcnd_all/{station_id}.dly not found.")
+
+    print("✅ Test passed: File not found case handled correctly")
+
+
+@pytest.fixture
 def mock_db_connection(mocker, mock_db_cursor):
     """Mocks a database connection"""
     mock_conn = mocker.patch("data_services.connection_pool.get_connection")
