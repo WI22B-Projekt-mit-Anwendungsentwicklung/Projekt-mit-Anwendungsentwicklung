@@ -14,28 +14,30 @@ def test_haversine():
     assert haversine(0, 0, 0, 0) == 0
     assert round(haversine(48.8566, 2.3522, 51.5074, -0.1278), 1) == 343.6
 
+import pytest
+from data_services import haversine
+
 def test_haversine_extreme_cases():
     """Test haversine with real extreme cases"""
 
-    # Null-Entfernung (gleiche Koordinaten)
-    assert haversine(0, 0, 0, 0) == 0, "Fehler: Erwartete 0 km für zwei identische Punkte"
+    # Zero distance (same coordinates)
+    assert haversine(0, 0, 0, 0) == 0, "Error: Expected 0 km for two identical points"
 
-    # Nordpol → Südpol (maximale Entfernung auf der Erde)
-    # Theoretisch sollte die Entfernung ca. 20.000 km (halber Erdumfang) betragen
-    assert round(haversine(90, 0, -90, 0), 1) == 20015.1, "Fehler: Nordpol → Südpol sollte 20015.1 km sein"
+    # North Pole → South Pole (maximum possible distance on Earth)
+    assert round(haversine(90, 0, -90, 0), 1) == 20015.1, "Error: North Pole → South Pole should be 20015.1 km"
 
-    # Entfernung zwischen zwei weit entfernten Städten (New York → Sydney)
-    # Erwartete Entfernung ~ 16.000 km
-    assert round(haversine(40.7128, -74.0060, -33.8688, 151.2093), 0) == 15988, "Fehler: New York → Sydney sollte ~15988 km sein"
+    # Distance between two far-apart cities (New York → Sydney)
+    # Expected distance ~ 16,000 km
+    assert round(haversine(40.7128, -74.0060, -33.8688, 151.2093), 0) == 15988, "Error: New York → Sydney should be ~15988 km"
 
-    # Sehr nahe Punkte (Berlin Hauptbahnhof → Brandenburger Tor, ~2 km)
-    assert round(haversine(52.5251, 13.3694, 52.5163, 13.3777), 1) == 1.1, "Fehler: Berlin Hbf → Brandenburger Tor sollte ~1.1 km sein"
+    # Very close points (Berlin Central Station → Brandenburg Gate, ~2 km)
+    assert round(haversine(52.5251, 13.3694, 52.5163, 13.3777), 1) == 1.1, "Error: Berlin Central Station → Brandenburg Gate should be ~1.1 km"
 
-    # Äquator-Umfangstest (zwei Punkte auf demselben Breitengrad, 180° auseinander)
-    # Sollte ca. 20.037 km sein
-    assert round(haversine(0, 0, 0, 180), 0) == 20037, "Fehler: Äquator 0° → 180° sollte 20037 km sein"
+    # Equator circumference test (two points on the same latitude, 180° apart)
+    assert round(haversine(0, 0, 0, 180), 0) == 20037, "Error: Equator 0° → 180° should be 20037 km"
 
-    print("Alle Extremfälle für haversine() erfolgreich getestet!")
+    print("All extreme cases for haversine() successfully tested!")
+
 
 def test_get_stations_in_radius(mocker):
     # Mock database query results
