@@ -198,17 +198,18 @@ def test_get_weather_data(client, mocker):
     assert response.status_code == 200
     json_data = response.get_json()
 
-    assert json_data == [
-        [("2020", -2.1)], [("2020", 15.3)],
-        [("2020", 1.5)], [("2020", 10.8)],
-        [("2020", 7.4)], [("2020", 22.1)],
-        [("2020", 3.9)], [("2020", 13.4)],
-        [("2020", -1.7)], [("2020", 5.2)]
-    ], f"Error: Unexpected response {json_data}"
+    # Entferne eine Listenebene durch List Comprehension
+    flat_json_data = [entry[0] for entry in json_data]
+
+    assert flat_json_data == [
+        ("2020", -2.1), ("2020", 15.3),
+        ("2020", 1.5), ("2020", 10.8),
+        ("2020", 7.4), ("2020", 22.1),
+        ("2020", 3.9), ("2020", 13.4),
+        ("2020", -1.7), ("2020", 5.2)
+    ], f"Error: Unexpected response {flat_json_data}"
 
     print("✅ test_get_weather_data passed!")
-
-
 
 # ----------------- station.py -----------------
 
