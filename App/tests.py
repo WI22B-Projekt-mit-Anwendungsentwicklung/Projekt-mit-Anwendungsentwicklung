@@ -166,6 +166,8 @@ def test_receive_data(mocker):
     assert response.status_code == 200
     assert response.get_json() == ["Station1", "Station2"]
 
+
+
 @pytest.fixture
 def client():
     """Creates a test client for the Flask application."""
