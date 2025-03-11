@@ -167,20 +167,50 @@ def test_receive_data(mocker):
     assert response.get_json() == ["Station1", "Station2"]
 
 
-def test_get_weather_data(client, mocker):
-    """Tests if get_weather_data correctly returns weather data"""
+import pytest
+from flask import Flask
+from routes import init_routes
 
+@pytest.fixture
+def client():
+    """Creates a test client for the Flask application."""
     app = Flask(__name__)
     init_routes(app)
-    client = app.test_client()
+    app.config["TESTING"] = True
+    with app.test_client() as client:
+        yield client
 
-    # Mock die Backend-Funktion
-    mocker.patch("data_services.get_datapoints_for_station", return_value=[(2020, 15.0)])
+def test_get_weather_data(client, mocker):
+    """Tests whether weather data is correctly retrieved from the API"""
 
-    # Test mit korrekten Parametern
-    response = client.post("/getWeatherData", json={"stationName": "ST123", "yearStart": 2020, "yearEnd": 2020})
+    # Mock data_services function
+    mocker.patch("data_services.get_datapoints_for_station", return_value=[
+        [("2020", -2.1)], [("2020", 15.3)],  # Annual Tmin & Tmax
+        [("2020", 1.5)], [("2020", 10.8)],   # Spring Tmin & Tmax
+        [("2020", 7.4)], [("2020", 22.1)],   # Summer Tmin & Tmax
+        [("2020", 3.9)], [("2020", 13.4)],   # Autumn Tmin & Tmax
+        [("2020", -1.7)], [("2020", 5.2)]    # Winter Tmin & Tmax
+    ])
+
+    response = client.post("/getWeatherData", json={
+        "stationName": "ST123",
+        "yearStart": 2020,
+        "yearEnd": 2020
+    })
+
     assert response.status_code == 200
-    assert response.get_json() == [(2020, 15.0)]
+    json_data = response.get_json()
+
+    assert json_data == [
+        [("2020", -2.1)], [("2020", 15.3)],
+        [("2020", 1.5)], [("2020", 10.8)],
+        [("2020", 7.4)], [("2020", 22.1)],
+        [("2020", 3.9)], [("2020", 13.4)],
+        [("2020", -1.7)], [("2020", 5.2)]
+    ], f"Error: Unexpected response {json_data}"
+
+    print("✅ test_get_weather_data passed!")
+
 
 
 # ----------------- station.py -----------------
