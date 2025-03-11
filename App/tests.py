@@ -262,14 +262,26 @@ def test_download_and_create_datapoints_local(mock_print, mock_path_exists):
 
 
 @pytest.fixture
+def mock_db_cursor():
+    """Mocks a database cursor with predefined fetchall() results"""
+    mock_cursor = mock.MagicMock()
+    mock_cursor.fetchall.side_effect = [
+        [("2020", -2.1)], [("2020", 15.3)],  # Annual Tmin & Tmax
+        [("2020", 1.5)], [("2020", 10.8)],   # Spring Tmin & Tmax
+        [("2020", 7.4)], [("2020", 22.1)],   # Summer Tmin & Tmax
+        [("2020", 3.9)], [("2020", 13.4)],   # Autumn Tmin & Tmax
+        [("2020", -1.7)], [("2020", 5.2)]    # Winter Tmin & Tmax
+    ]
+    return mock_cursor
+
+@pytest.fixture
 def mock_db_connection(mocker, mock_db_cursor):
     """Mocks a database connection"""
     mock_conn = mocker.patch("data_services.connection_pool.get_connection")
     mock_conn.return_value.cursor.return_value.__enter__.return_value = mock_db_cursor
     return mock_conn
 
-
-def test_get_datapoints_for_station(mock_db_connection):
+def test_get_datapoints_for_station(mock_db_connection, mock_db_cursor):
     """Tests whether temperature data is correctly retrieved from the database"""
 
     station_id = "ST123"
@@ -282,14 +294,17 @@ def test_get_datapoints_for_station(mock_db_connection):
     # Expected results
     expected_result = [
         [("2020", -2.1)], [("2020", 15.3)],  # Annual Tmin & Tmax
-        [("2020", 1.5)], [("2020", 10.8)],  # Spring Tmin & Tmax
-        [("2020", 7.4)], [("2020", 22.1)],  # Summer Tmin & Tmax
-        [("2020", 3.9)], [("2020", 13.4)],  # Autumn Tmin & Tmax
-        [("2020", -1.7)], [("2020", 5.2)]  # Winter Tmin & Tmax
+        [("2020", 1.5)], [("2020", 10.8)],   # Spring Tmin & Tmax
+        [("2020", 7.4)], [("2020", 22.1)],   # Summer Tmin & Tmax
+        [("2020", 3.9)], [("2020", 13.4)],   # Autumn Tmin & Tmax
+        [("2020", -1.7)], [("2020", 5.2)]    # Winter Tmin & Tmax
     ]
 
     # Verify the returned data
     assert result == expected_result, f"Error: Unexpected response {result}"
+
+    # Verify that fetchall() was called the expected number of times (5 queries)
+    assert mock_db_cursor.fetchall.call_count == 5, "fetchall() was not called the expected number of times"
 
     print("get_datapoints_for_station() test passed!")
 
