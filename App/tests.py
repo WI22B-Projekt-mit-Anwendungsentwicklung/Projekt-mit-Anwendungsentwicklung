@@ -166,11 +166,6 @@ def test_receive_data(mocker):
     assert response.status_code == 200
     assert response.get_json() == ["Station1", "Station2"]
 
-
-import pytest
-from flask import Flask
-from routes import init_routes
-
 @pytest.fixture
 def client():
     """Creates a test client for the Flask application."""
