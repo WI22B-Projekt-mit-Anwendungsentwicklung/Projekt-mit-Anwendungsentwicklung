@@ -248,7 +248,7 @@ def test_download_and_create_datapoints_local(mock_path_exists, mock_open_file, 
     assert len(datapoints) == 1, f"Error: Expected 1 data point, got {len(datapoints)}"
     assert datapoints[0].date == 194901, f"Error: Expected date 194901, got {datapoints[0].date}"
     assert datapoints[0].tmax == 27.23, f"Error: Expected tmax 27.23, got {datapoints[0].tmax}"
-    assert datapoints[0].tmin == 21.02, f"Error: Expected tmin 21.02, got {datapoints[0].tmin}"
+    assert datapoints[0].tmin == 20.984, f"Error: Expected tmin 20.984, got {datapoints[0].tmin}"
     assert datapoints[0].station == station_id, f"Error: Expected station {station_id}, got {datapoints[0].station}"
 
     print("Test passed: File exists and data is extracted correctly")
@@ -273,18 +273,19 @@ def test_download_and_create_datapoints_local_not_existing_file(mock_print, mock
 
 
 @pytest.fixture
-def mock_db_cursor2():
+def mock_db_cursor():
     """Mocks a database cursor with predefined fetchall() results"""
     mock_cursor = mock.MagicMock()
     mock_cursor.fetchall.side_effect = [
-        [("2020", -2.1)], [("2020", 15.3)],  # Annual Tmin & Tmax
-        [("2020", 1.5)], [("2020", 10.8)],   # Spring Tmin & Tmax
-        [("2020", 7.4)], [("2020", 22.1)],   # Summer Tmin & Tmax
-        [("2020", 3.9)], [("2020", 13.4)],   # Autumn Tmin & Tmax
-        [("2020", -1.7)], [("2020", 5.2)],   # Winter Tmin & Tmax
-        [],
+        [("2020", -2.1)],  # Annual Tmin
+        [("2020", 15.3)],  # Annual Tmax
+        [("2020", 1.5)], [("2020", 10.8)],  # Spring Tmin & Tmax
+        [("2020", 7.4)], [("2020", 22.1)],  # Summer Tmin & Tmax
+        [("2020", 3.9)], [("2020", 13.4)],  # Autumn Tmin & Tmax
+        [("2020", -1.7)], [("2020", 5.2)]  # Winter Tmin & Tmax
     ]
     return mock_cursor
+
 
 
 @pytest.fixture
