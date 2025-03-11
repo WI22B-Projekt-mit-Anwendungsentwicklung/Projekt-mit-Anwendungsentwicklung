@@ -167,6 +167,22 @@ def test_receive_data(mocker):
     assert response.get_json() == ["Station1", "Station2"]
 
 
+def test_get_weather_data(client, mocker):
+    """Tests if get_weather_data correctly returns weather data"""
+
+    app = Flask(__name__)
+    init_routes(app)
+    client = app.test_client()
+
+    # Mock die Backend-Funktion
+    mocker.patch("data_services.get_datapoints_for_station", return_value=[(2020, 15.0)])
+
+    # Test mit korrekten Parametern
+    response = client.post("/getWeatherData", json={"stationName": "ST123", "yearStart": 2020, "yearEnd": 2020})
+    assert response.status_code == 200
+    assert response.get_json() == [(2020, 15.0)]
+
+
 # ----------------- station.py -----------------
 
 def test_station_init():
