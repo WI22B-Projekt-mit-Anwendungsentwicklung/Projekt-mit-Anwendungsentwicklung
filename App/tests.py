@@ -44,6 +44,31 @@ def test_haversine_extreme_cases():
     print("All extreme cases for haversine() successfully tested!")
 
 
+from data_services import find_stations_within_radius, haversine
+
+def test_find_stations_within_radius():
+    """Tests if the function correctly finds stations within the given radius and sorts them"""
+
+    # Beispielstationen mit Koordinaten (Lat, Lon)
+    stations = [
+        ("ST001", "Near Station", 48.1, 8.1),  # Distance: 10 km
+        ("ST002", "Far Station", 49.5, 9.5),  # Distance: 150 km
+        ("ST003", "Close Station", 48.2, 8.2),  # Distance: 5 km
+    ]
+
+    radius = 100  # Max. 100 km
+    max_stations = 2
+
+    result = find_stations_within_radius(stations, 48.0, 8.0, radius, max_stations)
+
+    expected = ["ST003", "ST001"]
+    actual = [station[0][0] for station in result]
+
+    assert actual == expected, f"Expected order {expected}, but got {actual}"
+
+    print("find_stations_within_radius() test passed!")
+
+
 def test_get_stations_in_radius(mocker):
     # Mock database query results
     mock_cursor = mocker.Mock()
