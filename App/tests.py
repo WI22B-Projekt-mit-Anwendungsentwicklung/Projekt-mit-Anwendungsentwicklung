@@ -201,8 +201,8 @@ def test_get_weather_data(client, mocker):
     # Debugging: Sehe, welche Daten von der API zurückkommen
     print(f"Received JSON data: {json_data}")
 
-    # Vermeide IndexError, falls json_data nicht die erwartete Struktur hat
-    flat_json_data = [(str(entry[0]), float(entry[1])) for entry in json_data if len(entry) >= 2]
+    # Extrahiere die Daten und entferne die unnötige Verschachtelung
+    flat_json_data = [(str(entry[0][0]), float(entry[0][1])) for entry in json_data]
 
     # Erwartete Struktur
     expected_data = [
@@ -215,7 +215,6 @@ def test_get_weather_data(client, mocker):
 
     assert flat_json_data == expected_data, f"Error: Unexpected response {flat_json_data}"
 
-    print("✅ test_get_weather_data passed!")
 
 # ----------------- station.py -----------------
 
