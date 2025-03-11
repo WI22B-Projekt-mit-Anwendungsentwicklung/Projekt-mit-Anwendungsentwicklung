@@ -19,13 +19,13 @@ def run_tests():
     print("Running tests with coverage...")
 
     pytest_args = [
-        "-q",  # Quiet mode (reduziert die Ausgabe)
-        "--cov=data_services",  # Coverage für data_services.py
-        "--cov=datapoint",  # Coverage für datapoint.py
-        "--cov=routes",  # Coverage für routes.py
-        "--cov=station",  # Coverage für station.py
-        "--cov-report=term",  # Zeigt die Coverage in der Konsole an
-        "tests.py"  # Testdatei
+        "-q",
+        "--cov=data_services",
+        "--cov=datapoint",
+        "--cov=routes",
+        "--cov=station",
+        "--cov-report=term",
+        "tests.py"
     ]
 
     pytest_exit_code = pytest.main(pytest_args)
