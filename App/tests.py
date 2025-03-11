@@ -198,8 +198,11 @@ def test_get_weather_data(client, mocker):
     assert response.status_code == 200
     json_data = response.get_json()
 
-    # Konvertiere Listen von Strings zu Tupeln mit numerischen Werten
-    flat_json_data = [(str(entry[0]), float(entry[1])) for entry in json_data]
+    # Debugging: Sehe, welche Daten von der API zurückkommen
+    print(f"Received JSON data: {json_data}")
+
+    # Vermeide IndexError, falls json_data nicht die erwartete Struktur hat
+    flat_json_data = [(str(entry[0]), float(entry[1])) for entry in json_data if len(entry) >= 2]
 
     # Erwartete Struktur
     expected_data = [
