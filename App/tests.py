@@ -227,7 +227,7 @@ def mock_extract_average_value():
     "ACW00011604194901TMAX  289  X  289  X  283  X  283  X  289  X  289  X  278  X  267  X  272  X  278  X  267  X  278  X  267  X  267  X  278  X  267  X  267  X  272  X  272  X  272  X  278  X  272  X  267  X  267  X  267  X  278  X  272  X  272  X  272  X  272  X  272  X\n"
     "ACW00011604194901TMIN  217  X  228  X  222  X  233  X  222  X  222  X  228  X  217  X  222  X  183  X  189  X  194  X  161  X  183  X  178  X  222  X  211  X  211  X  194  X  217  X  217  X  217  X  211  X  211  X  200  X  222  X  217  X  211  X  222  X  206  X  217  X\n"
 )
-def test_download_and_create_datapoints_local_file_exists(mock_extract_average_value):
+def test_download_and_create_datapoints_local_file_exists(mock_path_exists, mock_open, mock_extract_average_value):
     """Tests if data is correctly extracted when the file exists"""
 
     station_id = "ACW00011604194901"
@@ -389,6 +389,30 @@ def test_get_weather_data(client, mocker):
 
 # ----------------- station.py -----------------
 
+def test_station_repr():
+    """Tests the string representation (__repr__) of a Station object."""
+
+    station = Station(
+        id="ST789",
+        name="Repr Station",
+        latitude=49.5,
+        longitude=9.5,
+        last_measure_tmax=2025,
+        first_measure_tmax=2010,
+        last_measure_tmin=2024,
+        first_measure_tmin=2011
+    )
+
+    expected_repr = (
+        "ID=ST789, Name=Repr Station latitude=49.5, longitude=9.5, "
+        "measure tmax first/last=2010/2025,"
+        "measure tmin first/last=2011/2024)"
+    )
+
+    assert repr(station) == expected_repr
+    print("test_station_repr() passed!")
+
+
 def test_station_initialization():
     """Tests if the Station object is correctly initialized with given parameters."""
 
@@ -447,7 +471,6 @@ def test_station_init():
     assert station.latitude == 48.0
     assert station.longitude == 8.0
 
-
 def test_station_repr():
     station = Station("ID123", "TestStation", 48.0, 8.0)
     assert "ID=ID123, Name=TestStation" in repr(station)
@@ -488,7 +511,7 @@ def load_stations_from_url(url_inventory: str, url_stations: str):
 
     return stations
 
-def test_load_stations_with_real_noaa_data():
+def test_load_stations_from_url():
     """
     Tests the function load_stations_from_url.
     """
