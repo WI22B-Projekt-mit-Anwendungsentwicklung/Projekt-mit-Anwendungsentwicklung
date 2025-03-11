@@ -1,11 +1,13 @@
 import pytest
 from flask import Flask
-import requests
 from data_services import haversine, get_stations_in_radius, get_datapoints_for_station, find_stations_within_radius, save_data_to_db
 from datapoint import DataPoint, extract_average_value, download_and_create_datapoints, download_and_create_datapoints_local
 from routes import init_routes
-from station import Station
+from station import Station, load_stations_from_url
 from unittest.mock import patch, MagicMock
+from mysql.connector import pooling
+from unittest import mock
+
 
 # ----------------- Testing functions ----------------
 
@@ -42,13 +44,11 @@ def test_save_data_to_db(mock_download_datapoints, mock_load_stations, mock_get_
     mock_cursor.execute.assert_called()  # At least one DB operation should have been performed
     mock_connection.commit.assert_called()  # Changes should be committed
 
-    print("save_data_to_db() test passed!")
-
 
 def test_haversine():
+    """Test haversine"""
     assert haversine(0, 0, 0, 0) == 0
     assert round(haversine(48.8566, 2.3522, 51.5074, -0.1278), 1) == 343.6
-
 
 def test_haversine_extreme_cases():
     """Test haversine with real extreme cases"""
@@ -74,8 +74,6 @@ def test_haversine_extreme_cases():
     # Equator circumference test (two points on the same latitude, 180° apart)
     assert round(haversine(0, 0, 0, 180), 0) == 20015, "Error: Equator 0° → 180° should be 20015 km"
 
-    print("All extreme cases for haversine() successfully tested!")
-
 
 def test_find_stations_within_radius():
     """Tests if the function correctly finds stations within the given radius"""
@@ -97,10 +95,10 @@ def test_find_stations_within_radius():
     for station, distance in result:
         assert distance <= radius, f"Error: Station {station[0]} is outside the radius ({distance} km)"
 
-    print("find_stations_within_radius() test passed!")
-
 
 def test_get_stations_in_radius(mocker):
+    """Unit test for the `get_stations_in_radius` function using mocking."""
+
     # Mock database query results
     mock_cursor = mocker.Mock()
     mock_cursor.fetchall.return_value = [
@@ -128,22 +126,27 @@ def test_get_stations_in_radius(mocker):
 
     assert actual_order == expected_order, f"Error: Expected order {expected_order}, got {actual_order}"
 
-    print("Test passed successfully!")
-
 
 # ----------------- datapoint.py -----------------
 
+
 def test_datapoint_init():
+    """Tests if the DataPoint object is correctly initialized with the given values."""
+
     dp = DataPoint(202401, 25.5, 10.3, "ST123")
     assert dp.date == 202401
     assert dp.tmax == 25.5
     assert dp.tmin == 10.3
 
 def test_datapoint_repr():
+    """Tests if the `repr` method of DataPoint correctly represents the object as a string."""
+
     dp = DataPoint(202401, 25.5, 10.3, "ST123")
     assert "DataPoint(date=202401" in repr(dp)
 
 def test_extract_average_value():
+    """Tests the `extract_average_value` function for different cases."""
+
     # Test Case 1: Normal case with positive values
     line1 = "AO000066422195802TMIN  200  I  200  I  228  I  200  I  200  I  178  I  189  I  200  I  200  I  200  I  178  I  178  I  178  I  172  I  178  I  150  I  161  I  161  I  139  I  161  I  178  I  189  I  178  I  161  I  178  I  178  I  189  I  178  I-9999   -9999   -9999"
     assert extract_average_value(line1) == 18.143, f"Error: Expected 18.143, got {extract_average_value(line1)}"
@@ -164,13 +167,11 @@ def test_extract_average_value():
     line5 = "AR000087860195608TMIN   -4  G  -16  G   -4  G   28  G   70  G   58  G   79  G   60  G   40  G   44  G   46  G  118  G  108  G   76  G   43  G    4  G   42  G  142  G  108  G   74  G   18  G    0  G    2  G   84  G   37  G   60  G   68  G   70  G   21  G   -7  G    4  G"
     assert extract_average_value(line5) == 4.752, f"Error: Expected 4.752, got {extract_average_value(line5)}"
 
-    print('All test cases passed!')
-
-from unittest import mock
 
 @pytest.fixture
 def mock_noaa_data():
     """Mock NOAA data file content for a station"""
+
     return """ACW00011604194901TMAX  289  X  289  X  283  X  283  X  289  X  289  X  278  X  267  X  272  X  278  X  267  X  278  X  267  X  267  X  278  X  267  X  267  X  272  X  272  X  272  X  278  X  272  X  267  X  267  X  267  X  278  X  272  X  272  X  272  X  272  X  272  X
                ACW00011604194901TMIN  217  X  228  X  222  X  233  X  222  X  222  X  228  X  217  X  222  X  183  X  189  X  194  X  161  X  183  X  178  X  222  X  211  X  211  X  194  X  217  X  217  X  217  X  211  X  211  X  200  X  222  X  217  X  211  X  222  X  206  X  217  X"""
 
@@ -179,7 +180,6 @@ def mock_noaa_data():
 def test_download_and_create_datapoints(mock_get):
     """Tests whether data points are correctly extracted from NOAA file"""
 
-    # Simulated NOAA data format
     mock_noaa_data = (
         "ACW00011604194901TMAX  289  X  289  X  283  X  283  X  289  X  289  X  278  X  267  X  272  X  278  X  267  X  278  X  267  X  267  X  278  X  267  X  267  X  272  X  272  X  272  X  278  X  272  X  267  X  267  X  267  X  278  X  272  X  272  X  272  X  272  X  272  X\n"
         "ACW00011604194901TMIN  217  X  228  X  222  X  233  X  222  X  222  X  228  X  217  X  222  X  183  X  189  X  194  X  161  X  183  X  178  X  222  X  211  X  211  X  194  X  217  X  217  X  217  X  211  X  211  X  200  X  222  X  217  X  211  X  222  X  206  X  217  X\n"
@@ -195,15 +195,14 @@ def test_download_and_create_datapoints(mock_get):
 
     # Verify results
     assert len(datapoints) == 1, f"Error: Expected 3 data points, got {len(datapoints)}"
-    assert datapoints[0].tmax == 27.461, "Error: Expected tmax to be 28.9"
-    assert datapoints[0].tmin == 21.7, "Error: Expected tmin to be 21.7"
-
-    print("download_and_create_datapoints() test passed!")
+    assert datapoints[0].tmax == 27.461, "Error: Expected tmax to be 27.461"
+    assert datapoints[0].tmin == 20.984, "Error: Expected tmin to be 20.984"
 
 
 @pytest.fixture
 def mock_db_cursor(mocker):
     """Mocks a database cursor"""
+
     mock_cursor = mocker.Mock()
     mock_cursor.fetchall.side_effect = [
         [("2020", -2.1)],  # Annual Tmin
@@ -219,18 +218,23 @@ def mock_db_cursor(mocker):
 @pytest.fixture
 def mock_extract_average_value():
     """Mock the extract_average_value function to return predefined values"""
+
     with mock.patch("datapoint.extract_average_value", side_effect=[27.23, 21.02]):
         yield
+
 
 @pytest.fixture
 def mock_path_exists():
     """Mock os.path.exists to always return True"""
+
     with mock.patch("os.path.exists", return_value=True):
         yield
+
 
 @pytest.fixture
 def mock_open_file():
     """Mock open() to return predefined file content"""
+
     mock_data = (
         "ACW00011604194901TMAX  289  X  289  X  283  X  283  X  289  X  289  X  278  X  267  X  272  X  278  X  267  X  278  X  267  X  267  X  278  X  267  X  267  X  272  X  272  X  272  X  278  X  272  X  267  X  267  X  267  X  278  X  272  X  272  X  272  X  272  X  272  X\n"
         "ACW00011604194901TMIN  217  X  228  X  222  X  233  X  222  X  222  X  228  X  217  X  222  X  183  X  189  X  194  X  161  X  183  X  178  X  222  X  211  X  211  X  194  X  217  X  217  X  217  X  211  X  211  X  200  X  222  X  217  X  211  X  222  X  206  X  217  X\n"
@@ -238,21 +242,19 @@ def mock_open_file():
     with mock.patch("builtins.open", mock.mock_open(read_data=mock_data)):
         yield
 
+
 def test_download_and_create_datapoints_local(mock_path_exists, mock_open_file, mock_extract_average_value):
     """Tests if data is correctly extracted when the file exists"""
 
-    station_id = "ACW00011604194901"
+    station_id = "ACW00011604"
     datapoints = download_and_create_datapoints_local(station_id)
 
     # Ensure the function returns the expected list of DataPoint objects
     assert len(datapoints) == 1, f"Error: Expected 1 data point, got {len(datapoints)}"
     assert datapoints[0].date == 194901, f"Error: Expected date 194901, got {datapoints[0].date}"
     assert datapoints[0].tmax == 27.23, f"Error: Expected tmax 27.23, got {datapoints[0].tmax}"
-    assert datapoints[0].tmin == 20.984, f"Error: Expected tmin 20.984, got {datapoints[0].tmin}"
+    assert datapoints[0].tmin == 21.02, f"Error: Expected tmin 21.02, got {datapoints[0].tmin}"
     assert datapoints[0].station == station_id, f"Error: Expected station {station_id}, got {datapoints[0].station}"
-
-    print("Test passed: File exists and data is extracted correctly")
-
 
 
 @mock.patch("os.path.exists", return_value=False)  # Mock file does NOT exist
@@ -269,73 +271,119 @@ def test_download_and_create_datapoints_local_not_existing_file(mock_print, mock
     # Ensure the error message is printed
     mock_print.assert_called_once_with(f"Error: File /data/ghcnd_all/{station_id}.dly not found.")
 
-    print("Test passed: File not found case handled correctly")
+
+# Initialize the connection pool based on the configuration from the code
+dbconfig = {
+    "user": "root",
+    "password": "root",
+    "host": "mysql",
+    "port": "3306",
+    "database": "db"
+}
+
+
+connection_pool = pooling.MySQLConnectionPool(
+    pool_name="mypool",
+    pool_size=10,
+    **dbconfig
+)
+
+
+@pytest.fixture(scope="module")
+def real_db_connection():
+    """Establishes a real connection to the database via the pool."""
+    connection = connection_pool.get_connection()
+    yield connection  # Passes the connection to the test
+    connection.close()  # Closes the connection after the test
 
 
 @pytest.fixture
-def mock_db_cursor():
-    """Mocks a database cursor with predefined fetchall() results"""
-    mock_cursor = mock.MagicMock()
-    mock_cursor.fetchall.side_effect = [
-        [("2020", -2.1)],  # Annual Tmin
-        [("2020", 15.3)],  # Annual Tmax
-        [("2020", 1.5)], [("2020", 10.8)],  # Spring Tmin & Tmax
-        [("2020", 7.4)], [("2020", 22.1)],  # Summer Tmin & Tmax
-        [("2020", 3.9)], [("2020", 13.4)],  # Autumn Tmin & Tmax
-        [("2020", -1.7)], [("2020", 5.2)]  # Winter Tmin & Tmax
-    ]
-    return mock_cursor
+def db_cursor(real_db_connection):
+    """Returns a cursor for the test database."""
+    cursor = real_db_connection.cursor()
+    yield cursor
+    cursor.close()
 
 
-@pytest.fixture
-def mock_db_connection(mocker, mock_db_cursor2):
-    """Mocks a database connection"""
-    mock_conn = mocker.patch("data_services.connection_pool.get_connection")
-    mock_conn.return_value.cursor.return_value.__enter__.return_value = mock_db_cursor2
-    return mock_conn
+def test_get_datapoints_for_station_real_db(db_cursor):
+    """Tests the `get_datapoints_for_station()` function with real database values."""
 
-def test_get_datapoints_for_station(mock_db_connection, mock_db_cursor2):
-    """Tests whether temperature data is correctly retrieved from the database"""
-
-    station_id = "ST123"
+    station_id = "GME00129634"  # Replace with a valid station ID from your database
     first_year = 2020
     last_year = 2020
 
-    # Execute function
+    # Check if the station exists
+    db_cursor.execute("SELECT COUNT(*) FROM Station WHERE station_id = %s;", (station_id,))
+    station_exists = db_cursor.fetchone()[0]
+    assert station_exists > 0, f"Station {station_id} not found in the database!"
+
+    # Check if data exists for this station
+    db_cursor.execute("SELECT COUNT(*) FROM Datapoint WHERE SID = (SELECT SID FROM Station WHERE station_id = %s);", (station_id,))
+    record_count = db_cursor.fetchone()[0]
+    assert record_count > 0, f"No data points found for station {station_id}!"
+
+    # Execute function with real data
     result = get_datapoints_for_station(station_id, first_year, last_year)
 
-    # Expected results
-    expected_result = [
-        [("2020", -2.1)], [("2020", 15.3)],  # Annual Tmin & Tmax
-        [("2020", 1.5)], [("2020", 10.8)],   # Spring Tmin & Tmax
-        [("2020", 7.4)], [("2020", 22.1)],   # Summer Tmin & Tmax
-        [("2020", 3.9)], [("2020", 13.4)],   # Autumn Tmin & Tmax
-        [("2020", -1.7)], [("2020", 5.2)]    # Winter Tmin & Tmax
+    # Check if the result contains 10 values (annual & seasonal average values)
+    assert len(result) == 10, f"Missing values! Expected: 10, Received: {len(result)}"
+
+    # **Expected values for the tests (based on test data)**
+    expected_values = [
+        [(2020, 3.36)], [(2020, 14.93)],  # Annual Tmin & Tmax
+        [(2020, 1.36)], [(2020, 15.50)],  # Spring Tmin & Tmax
+        [(2020, 10.13)], [(2020, 23.60)],  # Summer Tmin & Tmax
+        [(2020, 3.67)], [(2020, 14.50)],  # Autumn Tmin & Tmax
+        [(2020, -1.87)], [(2020, 6.76)],  # Winter Tmin & Tmax
     ]
 
-    # Verify the returned data
-    assert result == expected_result, f"Error: Unexpected response {result}"
+    # **Debugging: Comparing received values with expected values**
+    print("**Received values from `get_datapoints_for_station`**:")
+    for i, dataset in enumerate(result):
+        print(f"Dataset {i + 1}: {dataset}")
 
-    # Verify that fetchall() was called the expected number of times (5 queries)
-    assert mock_db_cursor2.fetchall.call_count == 5, "fetchall() was not called the expected number of times"
+    print("**Expected values:**")
+    for i, dataset in enumerate(expected_values):
+        print(f"Dataset {i + 1}: {dataset}")
 
-    print("get_datapoints_for_station() test passed!")
+    # **Compare calculated values with expected database values**
+    for i in range(len(expected_values)):
+        # Unpack expected and received values correctly from the list structure
+        (expected_year, expected_value) = expected_values[i][0]  # Expected result as tuple
+        (result_year, result_value) = result[i][0]  # Received result as tuple
+
+        # Verify the year (as a string for safety)
+        assert str(result_year) == str(expected_year), (
+            f"Year mismatch! Expected: {expected_year}, Received: {result_year}"
+        )
+
+        # Verify the value with an allowed deviation of 0.1
+        assert abs(expected_value - result_value) <= 0.1, (
+            f"Deviation too large in Dataset {i + 1}: "
+            f"Expected {expected_value}, Received {result_value} "
+            f"(Difference: {abs(expected_value - result_value)})"
+        )
 
 
 # ----------------- routes.py -----------------
 
+
 def test_home():
+    """Tests if the home route ('/') returns a 200 OK response."""
     app = Flask(__name__)
     init_routes(app)
     client = app.test_client()
     response = client.get('/')
     assert response.status_code == 200
 
+
 def test_receive_data(mocker):
+    """Tests if the '/submit' endpoint correctly processes a POST request and returns the expected station data."""
     app = Flask(__name__)
     init_routes(app)
     client = app.test_client()
 
+    # Mocking the get_stations_in_radius function to return predefined station data
     mocker.patch("data_services.get_stations_in_radius", return_value=["Station1", "Station2"])
 
     response = client.post('/submit', json={
@@ -347,14 +395,16 @@ def test_receive_data(mocker):
         "stations": []
     })
 
+    # Check if the response status is 200 OK
     assert response.status_code == 200
+    # Check if the returned JSON matches the mocked station data
     assert response.get_json() == ["Station1", "Station2"]
-
 
 
 @pytest.fixture
 def client():
     """Creates a test client for the Flask application."""
+
     app = Flask(__name__)
     init_routes(app)
     app.config["TESTING"] = True
@@ -412,10 +462,9 @@ def test_get_weather_data(client, mocker):
     assert response.status_code == 400, f"Expected 400, got {response.status_code}"
     assert response.get_json() == {"message": "Fehlende Parameter"}
 
-    print("get_weather_data() test passed with missing parameter checks!")
-
 
 # ----------------- station.py -----------------
+
 
 def test_station_repr():
     """Tests the string representation (__repr__) of a Station object."""
@@ -438,7 +487,6 @@ def test_station_repr():
     )
 
     assert repr(station) == expected_repr
-    print("test_station_repr() passed!")
 
 
 def test_station_initialization():
@@ -465,7 +513,6 @@ def test_station_initialization():
     assert station.last_measure_tmin == 2019
     assert station.first_measure_tmin == 1999
 
-    print("test_station_initialization() passed!")
 
 def test_station_default_values():
     """Tests if default values are correctly assigned when optional parameters are not provided."""
@@ -489,10 +536,9 @@ def test_station_default_values():
     assert station.last_measure_tmin == 0
     assert station.first_measure_tmin == 0
 
-    print("test_station_default_values() passed!")
-
 
 def test_station_init():
+    """Tests the initialization of a Station object with correct attribute values."""
     station = Station("ID123", "TestStation", 48.0, 8.0, 2020, 2000, 2020, 2000)
     assert station.id == "ID123"
     assert station.name == "TestStation"
@@ -500,62 +546,79 @@ def test_station_init():
     assert station.longitude == 8.0
 
 
-def load_stations_from_url(url_inventory: str, url_stations: str):
-    """
-    Loads and processes station and inventory data from NOAA URLs.
-    """
-    response = requests.get(url_stations)
-    if response.status_code != 200:
-        raise Exception(f"Error loading station data: HTTP {response.status_code}")
+@pytest.fixture
+def mock_station_data():
+    """Mock data for stations.txt containing three stations."""
 
-    station_dict = {}
-    for row in response.text.splitlines():
-        station_id = row[:11]
-        station_name = row[41:71].strip()
-        station_dict[station_id] = station_name
-
-    response = requests.get(url_inventory)
-    if response.status_code != 200:
-        raise Exception(f"Error loading inventory data: HTTP {response.status_code}")
-
-    stations = []
-    latest_station_id = None
-    for row in response.text.splitlines():
-        station_id = row[:11]
-        if latest_station_id != station_id:
-            station = {
-                "id": station_id,
-                "name": station_dict.get(station_id, "Unknown"),
-                "latitude": float(row[12:20]),
-                "longitude": float(row[21:30]),
-                "first_measure": int(row[36:40]),
-                "last_measure": int(row[41:45]),
-            }
-            stations.append(station)
-            latest_station_id = station_id
-
-    return stations
-
-def test_load_stations_from_url():
-    """
-    Tests the function load_stations_from_url.
-    """
-    url_stations = "https://www1.ncdc.noaa.gov/pub/data/ghcn/daily/ghcnd-stations.txt"
-    url_inventory = "https://www1.ncdc.noaa.gov/pub/data/ghcn/daily/ghcnd-inventory.txt"
-
-    stations = load_stations_from_url(url_inventory, url_stations)
-
-    # Assertions: Ensure that the data has been correctly loaded
-    assert len(stations) > 0, "No stations were loaded!"  # There should be stations available
-
-    first_station = stations[0]
-    assert "id" in first_station, "First station does not contain an ID"
-    assert "name" in first_station, "First station does not contain a name"
-    assert "latitude" in first_station, "First station does not contain latitude coordinates"
-    assert "longitude" in first_station, "First station does not contain longitude coordinates"
-
-    print(f"First station: {first_station}")
+    return """\
+ACW00011604  17.1167  -61.7833   10.1    ST JOHNS COOLIDGE FLD                        
+ACW00011647  17.1333  -61.7833   19.2    ST JOHNS                                    
+AE000041196  25.3330   55.5170   34.0    SHARJAH INTER. AIRP            GSN     41196
+"""
 
 
+@pytest.fixture
+def mock_inventory_data():
+    """Mock data for inventory.txt containing measurement periods of the stations."""
+
+    return """\
+ACW00011604  17.1167  -61.7833 TMAX 1949 1949
+ACW00011604  17.1167  -61.7833 TMIN 1949 1949
+ACW00011604  17.1167  -61.7833 PRCP 1949 1949
+ACW00011647  17.1333  -61.7833 TMAX 1961 1961
+ACW00011647  17.1333  -61.7833 TMIN 1961 1961
+ACW00011647  17.1333  -61.7833 PRCP 1957 1970
+AE000041196  25.3330   55.5170 TMAX 1944 2025
+AE000041196  25.3330   55.5170 TMIN 1944 2025
+AE000041196  25.3330   55.5170 PRCP 1944 2025
+"""
+
+@mock.patch("requests.get")
+def test_load_stations_from_url(mock_get, mock_station_data, mock_inventory_data):
+    """Tests loading stations from mock URLs with mock data for stations.txt and inventory.txt."""
+
+    # Simulated responses for the URLs
+    mock_get.side_effect = [
+        mock.Mock(status_code=200, text=mock_station_data),  # Response for stations.txt
+        mock.Mock(status_code=200, text=mock_inventory_data)  # Response for inventory.txt
+    ]
+
+    # Testing the function with mock URLs
+    stations = load_stations_from_url("mock_inventory_url", "mock_stations_url")
+
+    # Expected results as `Station` objects
+    expected_stations = [
+        Station("ACW00011604", "ST JOHNS COOLIDGE FLD", 17.1167, -61.7833, last_measure_tmax=1949,
+                first_measure_tmax=1949),
+        Station("ACW00011647", "ST JOHNS", 17.1333, -61.7833, last_measure_tmax=1961, first_measure_tmax=1961),
+        Station("AE000041196", "SHARJAH INTER. AIRP", 25.3330, 55.5170, last_measure_tmax=2025,
+                first_measure_tmax=1944),
+    ]
+
+    # Assertions
+    assert len(stations) == len(
+        expected_stations), f"Error: Expected {len(expected_stations)} stations, got {len(stations)}"
+
+    for expected, actual in zip(expected_stations, stations):
+        assert expected.id == actual.id, f"Error: Expected ID {expected.id}, got {actual.id}"
+        assert expected.name == actual.name, f"Error: Expected Name {expected.name}, got {actual.name}"
+        assert expected.latitude == actual.latitude, f"Error: Expected Latitude {expected.latitude}, got {actual.latitude}"
+        assert expected.longitude == actual.longitude, f"Error: Expected Longitude {expected.longitude}, got {actual.longitude}"
+        assert expected.first_measure_tmax == actual.first_measure_tmax, f"Error: Expected First Measure TMAX {expected.first_measure_tmax}, got {actual.first_measure_tmax}"
+        assert expected.last_measure_tmax == actual.last_measure_tmax, f"Error: Expected Last Measure TMAX {expected.last_measure_tmax}, got {actual.last_measure_tmax}"
 
 
+@mock.patch("requests.get")
+def test_load_stations_from_url_http_error(mock_get):
+    """Tests the behavior when HTTP errors occur (e.g., 404, 500)."""
+
+    # Simulating a failed response for stations.txt
+    mock_get.side_effect = [
+        mock.Mock(status_code=404, text=""),  # Failed response for stations.txt
+        mock.Mock(status_code=200, text="")   # Successful response for inventory.txt
+    ]
+
+    stations = load_stations_from_url("mock_inventory_url", "mock_stations_url")
+    stations = [s for s in stations if s.id]
+
+    assert stations == [], f"Error: Expected empty list when stations.txt request fails, but got: {stations}"
