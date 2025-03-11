@@ -222,12 +222,23 @@ def mock_extract_average_value():
     with mock.patch("datapoint.extract_average_value", side_effect=[27.23, 21.02]):
         yield
 
-@mock.patch("os.path.exists", return_value=True)  # Mock file existence
-@mock.patch("builtins.open", new_callable=mock.mock_open, read_data=
-    "ACW00011604194901TMAX  289  X  289  X  283  X  283  X  289  X  289  X  278  X  267  X  272  X  278  X  267  X  278  X  267  X  267  X  278  X  267  X  267  X  272  X  272  X  272  X  278  X  272  X  267  X  267  X  267  X  278  X  272  X  272  X  272  X  272  X  272  X\n"
-    "ACW00011604194901TMIN  217  X  228  X  222  X  233  X  222  X  222  X  228  X  217  X  222  X  183  X  189  X  194  X  161  X  183  X  178  X  222  X  211  X  211  X  194  X  217  X  217  X  217  X  211  X  211  X  200  X  222  X  217  X  211  X  222  X  206  X  217  X\n"
-)
-def test_download_and_create_datapoints_local(mock_path_exists, mock_open, mock_extract_average_value):
+@pytest.fixture
+def mock_path_exists():
+    """Mock os.path.exists to always return True"""
+    with mock.patch("os.path.exists", return_value=True):
+        yield
+
+@pytest.fixture
+def mock_open_file():
+    """Mock open() to return predefined file content"""
+    mock_data = (
+        "ACW00011604194901TMAX  289  X  289  X  283  X  283  X  289  X  289  X  278  X  267  X  272  X  278  X  267  X  278  X  267  X  267  X  278  X  267  X  267  X  272  X  272  X  272  X  278  X  272  X  267  X  267  X  267  X  278  X  272  X  272  X  272  X  272  X  272  X\n"
+        "ACW00011604194901TMIN  217  X  228  X  222  X  233  X  222  X  222  X  228  X  217  X  222  X  183  X  189  X  194  X  161  X  183  X  178  X  222  X  211  X  211  X  194  X  217  X  217  X  217  X  211  X  211  X  200  X  222  X  217  X  211  X  222  X  206  X  217  X\n"
+    )
+    with mock.patch("builtins.open", mock.mock_open(read_data=mock_data)):
+        yield
+
+def test_download_and_create_datapoints_local(mock_path_exists, mock_open_file, mock_extract_average_value):
     """Tests if data is correctly extracted when the file exists"""
 
     station_id = "ACW00011604194901"
@@ -235,10 +246,10 @@ def test_download_and_create_datapoints_local(mock_path_exists, mock_open, mock_
 
     # Ensure the function returns the expected list of DataPoint objects
     assert len(datapoints) == 1, f"Error: Expected 1 data point, got {len(datapoints)}"
-    assert datapoints[0].date == 194901
-    assert datapoints[0].tmax == 27.23
-    assert datapoints[0].tmin == 21.02
-    assert datapoints[0].station == station_id
+    assert datapoints[0].date == 194901, f"Error: Expected date 194901, got {datapoints[0].date}"
+    assert datapoints[0].tmax == 27.23, f"Error: Expected tmax 27.23, got {datapoints[0].tmax}"
+    assert datapoints[0].tmin == 21.02, f"Error: Expected tmin 21.02, got {datapoints[0].tmin}"
+    assert datapoints[0].station == station_id, f"Error: Expected station {station_id}, got {datapoints[0].station}"
 
     print("Test passed: File exists and data is extracted correctly")
 
@@ -246,7 +257,7 @@ def test_download_and_create_datapoints_local(mock_path_exists, mock_open, mock_
 
 @mock.patch("os.path.exists", return_value=False)  # Mock file does NOT exist
 @mock.patch("builtins.print")  # Mock print to suppress output
-def test_download_and_create_datapoints_local(mock_print, mock_path_exists):
+def test_download_and_create_datapoints_local_not_existing_file(mock_print, mock_path_exists):
     """Tests the behavior when the file does not exist"""
 
     station_id = "UNKNOWN_STATION"
@@ -258,7 +269,7 @@ def test_download_and_create_datapoints_local(mock_print, mock_path_exists):
     # Ensure the error message is printed
     mock_print.assert_called_once_with(f"Error: File /data/ghcnd_all/{station_id}.dly not found.")
 
-    print("✅ Test passed: File not found case handled correctly")
+    print("Test passed: File not found case handled correctly")
 
 
 @pytest.fixture
