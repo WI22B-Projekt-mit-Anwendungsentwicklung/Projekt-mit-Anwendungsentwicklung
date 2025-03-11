@@ -227,7 +227,7 @@ def mock_extract_average_value():
     "ACW00011604194901TMAX  289  X  289  X  283  X  283  X  289  X  289  X  278  X  267  X  272  X  278  X  267  X  278  X  267  X  267  X  278  X  267  X  267  X  272  X  272  X  272  X  278  X  272  X  267  X  267  X  267  X  278  X  272  X  272  X  272  X  272  X  272  X\n"
     "ACW00011604194901TMIN  217  X  228  X  222  X  233  X  222  X  222  X  228  X  217  X  222  X  183  X  189  X  194  X  161  X  183  X  178  X  222  X  211  X  211  X  194  X  217  X  217  X  217  X  211  X  211  X  200  X  222  X  217  X  211  X  222  X  206  X  217  X\n"
 )
-def test_download_and_create_datapoints_local_file_exists(mock_path_exists, mock_open, mock_extract_average_value):
+def test_download_and_create_datapoints_local_file_exists(mock_extract_average_value):
     """Tests if data is correctly extracted when the file exists"""
 
     station_id = "ACW00011604194901"
@@ -388,9 +388,6 @@ def test_get_weather_data(client, mocker):
 
 
 # ----------------- station.py -----------------
-
-import pytest
-from station import Station  # Adjust the import path as needed
 
 def test_station_initialization():
     """Tests if the Station object is correctly initialized with given parameters."""
