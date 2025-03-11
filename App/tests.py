@@ -75,7 +75,7 @@ def test_haversine_extreme_cases():
     assert round(haversine(0, 0, 0, 180), 0) == 20015, "Error: Equator 0° → 180° should be 20015 km"
 
 
-def test_find_stations_within_radius():
+def test_find_stations_in_radius():
     """Tests if the function correctly finds stations within the given radius"""
 
     # Example stations with coordinates (Lat, Lon)
@@ -96,7 +96,7 @@ def test_find_stations_within_radius():
         assert distance <= radius, f"Error: Station {station[0]} is outside the radius ({distance} km)"
 
 
-def test_get_stations_in_radius(mocker):
+def test_get_stations_in_radius_order(mocker):
     """Unit test for the `get_stations_in_radius` function using mocking."""
 
     # Mock database query results
