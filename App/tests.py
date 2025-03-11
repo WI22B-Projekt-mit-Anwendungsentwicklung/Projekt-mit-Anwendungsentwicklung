@@ -389,6 +389,60 @@ def test_get_weather_data(client, mocker):
 
 # ----------------- station.py -----------------
 
+import pytest
+from station import Station  # Adjust the import path as needed
+
+def test_station_initialization():
+    """Tests if the Station object is correctly initialized with given parameters."""
+
+    station = Station(
+        id="ST123",
+        name="Test Station",
+        latitude=48.0,
+        longitude=8.0,
+        last_measure_tmax=2020,
+        first_measure_tmax=2000,
+        last_measure_tmin=2019,
+        first_measure_tmin=1999
+    )
+
+    # Assert that all attributes are correctly set
+    assert station.id == "ST123"
+    assert station.name == "Test Station"
+    assert station.latitude == 48.0
+    assert station.longitude == 8.0
+    assert station.last_measure_tmax == 2020
+    assert station.first_measure_tmax == 2000
+    assert station.last_measure_tmin == 2019
+    assert station.first_measure_tmin == 1999
+
+    print("test_station_initialization() passed!")
+
+def test_station_default_values():
+    """Tests if default values are correctly assigned when optional parameters are not provided."""
+
+    station = Station(
+        id="ST456",
+        name="Default Station",
+        latitude=50.5,
+        longitude=10.5
+    )
+
+    # Assert that required attributes are correctly set
+    assert station.id == "ST456"
+    assert station.name == "Default Station"
+    assert station.latitude == 50.5
+    assert station.longitude == 10.5
+
+    # Assert that default values are correctly assigned
+    assert station.last_measure_tmax == 0
+    assert station.first_measure_tmax == 0
+    assert station.last_measure_tmin == 0
+    assert station.first_measure_tmin == 0
+
+    print("test_station_default_values() passed!")
+
+
 def test_station_init():
     station = Station("ID123", "TestStation", 48.0, 8.0, 2020, 2000, 2020, 2000)
     assert station.id == "ID123"
