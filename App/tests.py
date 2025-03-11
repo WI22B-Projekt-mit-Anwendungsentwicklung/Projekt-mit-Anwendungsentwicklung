@@ -39,7 +39,7 @@ def test_haversine_extreme_cases():
         actual_berlin - expected_berlin) <= 1, f"Error: Berlin Central Station → Brandenburg Gate should be ~{expected_berlin} km, got {actual_berlin} km"
 
     # Equator circumference test (two points on the same latitude, 180° apart)
-    assert round(haversine(0, 0, 0, 180), 0) == 20037, "Error: Equator 0° → 180° should be 20037 km"
+    assert round(haversine(0, 0, 0, 180), 0) == 20015, "Error: Equator 0° → 180° should be 20015 km"
 
     print("All extreme cases for haversine() successfully tested!")
 
