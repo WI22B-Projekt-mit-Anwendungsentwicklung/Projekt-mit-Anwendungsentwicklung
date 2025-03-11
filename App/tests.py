@@ -1,7 +1,7 @@
 import pytest
 from flask import Flask
 import requests
-from data_services import haversine, get_stations_in_radius, get_datapoints_for_station, find_stations_within_radius
+from data_services import haversine, get_stations_in_radius, get_datapoints_for_station, find_stations_within_radius, save_data_to_db
 from datapoint import DataPoint, extract_average_value, download_and_create_datapoints, download_and_create_datapoints_local
 from routes import init_routes
 from station import Station
@@ -168,6 +168,45 @@ def test_extract_average_value():
 
     print('All test cases passed!')
 
+
+import os
+from unittest import mock
+
+@pytest.fixture
+def mock_noaa_data():
+    """Mock NOAA data file content for a station"""
+    return """ACW00011604194901TMAX  289  X  289  X  283  X  283  X  289  X  289  X  278  X  267  X  272  X  278  X  267  X  278  X  267  X  267  X  278  X  267  X  267  X  272  X  272  X  272  X  278  X  272  X  267  X  267  X  267  X  278  X  272  X  272  X  272  X  272  X  272  X
+               ACW00011604194901TMIN  217  X  228  X  222  X  233  X  222  X  222  X  228  X  217  X  222  X  183  X  189  X  194  X  161  X  183  X  178  X  222  X  211  X  211  X  194  X  217  X  217  X  217  X  211  X  211  X  200  X  222  X  217  X  211  X  222  X  206  X  217  X"""
+
+
+@mock.patch("requests.get")
+def test_download_and_create_datapoints(mock_get, mock_noaa_data):
+    """Tests whether data points are correctly extracted from NOAA file"""
+
+    # Mock response from NOAA
+    mock_get.return_value.status_code = 200
+    mock_get.return_value.content = mock_noaa_data.encode()
+
+    # Execute function
+    station_id = "ACW00011604194901"
+    datapoints = download_and_create_datapoints(station_id)
+
+    # Verify results
+    assert len(datapoints) == 3, f"Error: Expected 3 data points, got {len(datapoints)}"
+
+    # Check the extracted data points
+    expected_data = [
+        DataPoint(195601, 25.0, 12.0, station_id),
+        DataPoint(195601, 25.6, 13.0, station_id),
+        DataPoint(195601, 27.8, 14.5, station_id),
+    ]
+
+    for expected, actual in zip(expected_data, datapoints):
+        assert expected.date == actual.date
+        assert expected.tmax == actual.tmax
+        assert expected.tmin == actual.tmin
+
+    print("download_and_create_datapoints() test passed!")
 
 
 # ----------------- routes.py -----------------
