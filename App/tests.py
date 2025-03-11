@@ -287,7 +287,6 @@ def mock_db_cursor():
     return mock_cursor
 
 
-
 @pytest.fixture
 def mock_db_connection(mocker, mock_db_cursor2):
     """Mocks a database connection"""
