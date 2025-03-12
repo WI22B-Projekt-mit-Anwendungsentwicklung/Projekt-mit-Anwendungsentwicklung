@@ -1,0 +1,16 @@
+{
+  "name": "frontend-tests",
+  "version": "1.0.0",
+  "type": "module",
+  "description": "...",
+  "scripts": {
+    "test": "jest --coverage"
+  },
+  "devDependencies": {
+    "jest": "^29.5.0",
+    "jest-environment-jsdom": "^29.5.0",
+    "@babel/core": "^7.21.4",
+    "@babel/preset-env": "^7.21.4",
+    "babel-jest": "^29.5.0"
+  }
+}

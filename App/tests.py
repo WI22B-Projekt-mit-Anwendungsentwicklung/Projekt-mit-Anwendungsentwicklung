@@ -624,3 +624,53 @@ def test_load_stations_from_url_http_error(mock_get):
     stations = [s for s in stations if s.id]
 
     assert stations == [], f"Error: Expected empty list when stations.txt request fails, but got: {stations}"
+
+# ----------------- Run Tests -----------------
+
+def run_backend_tests():
+    """
+    Runs the Python tests (Pytest) with coverage.
+    """
+    import sys
+    print("Running Python backend tests with coverage...")
+    pytest_args = [
+        "-q",
+        "--cov=data_services",
+        "--cov=datapoint",
+        "--cov=routes",
+        "--cov=station",
+        "--cov-report=term",
+        "tests.py"
+    ]
+    exit_code = pytest.main(pytest_args)
+    if exit_code != 0:
+        print("\nPython tests failed! Exiting...")
+        sys.exit(1)
+    else:
+        print("\nPython tests passed successfully.")
+
+
+def run_frontend_tests():
+    """
+    Runs the frontend (JS) tests by calling 'npm test'.
+    """
+    import sys
+    import os
+
+    print("Running frontend tests with 'npm test'...")
+    exit_code = os.system("npm test")
+    if exit_code != 0:
+        print("\nFrontend tests failed! Exiting...")
+        sys.exit(1)
+    else:
+        print("\nFrontend tests passed successfully.")
+
+
+def run_all_tests():
+    """
+    Runs both backend and frontend tests in sequence.
+    This is the single function we will call from app.py.
+    """
+    run_backend_tests()
+    run_frontend_tests()
+
