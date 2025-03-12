@@ -326,7 +326,7 @@ def get_datapoints_for_station(station_id, first_year, last_year):
                 SELECT winter_year,
                        SUM(tmin * days_in_month) / SUM(days_in_month) AS avg_tmin
                 FROM (
-                    SELECT CASE WHEN month IN (1, 2) THEN year - 1 ELSE year END AS winter_year,
+                    SELECT CASE WHEN month = 12 THEN year + 1 ELSE year END AS winter_year,
                            month,
                            AVG(tmin) AS tmin,
                            CASE
@@ -342,7 +342,7 @@ def get_datapoints_for_station(station_id, first_year, last_year):
                     FROM Datapoint
                     WHERE SID = %s
                       AND (month = 12 OR month BETWEEN 1 AND 2)
-                      AND (CASE WHEN month IN (1,2) THEN year - 1 ELSE year END) BETWEEN %s AND %s
+                      AND (CASE WHEN month = 12 THEN year + 1 ELSE year END) BETWEEN %s AND %s
                     GROUP BY year, month
                 ) AS subquery
                 GROUP BY winter_year
@@ -356,7 +356,7 @@ def get_datapoints_for_station(station_id, first_year, last_year):
                 SELECT winter_year,
                        SUM(tmax * days_in_month) / SUM(days_in_month) AS avg_tmax
                 FROM (
-                    SELECT CASE WHEN month IN (1, 2) THEN year - 1 ELSE year END AS winter_year,
+                    SELECT CASE WHEN month = 12 THEN year + 1 ELSE year END AS winter_year,
                            month,
                            AVG(tmax) AS tmax,
                            CASE
@@ -372,7 +372,7 @@ def get_datapoints_for_station(station_id, first_year, last_year):
                     FROM Datapoint
                     WHERE SID = %s
                       AND (month = 12 OR month BETWEEN 1 AND 2)
-                      AND (CASE WHEN month IN (1,2) THEN year - 1 ELSE year END) BETWEEN %s AND %s
+                      AND (CASE WHEN month = 12 THEN year + 1 ELSE year END) BETWEEN %s AND %s
                     GROUP BY year, month
                 ) AS subquery
                 GROUP BY winter_year
