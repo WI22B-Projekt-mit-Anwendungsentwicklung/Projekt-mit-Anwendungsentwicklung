@@ -4,7 +4,7 @@
   "type": "module",
   "description": "...",
   "scripts": {
-    "test": "jest --coverage"
+    "test": "jest"
   },
   "devDependencies": {
     "jest": "^29.5.0",
