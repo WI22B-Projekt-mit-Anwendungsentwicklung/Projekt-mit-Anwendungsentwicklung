@@ -1,20 +1,14 @@
 export async function getStations() {
-    const latitude = document.getElementById("latitude").value;
-    const longitude = document.getElementById("longitude").value;
-    const radius = document.getElementById("radius").value;
-    const yearStart = document.getElementById("yearStart").value;
-    const yearEnd = document.getElementById("yearEnd").value;
-    const stations = document.getElementById("stationsInput").value;
-    let statioList = document.querySelector("#stationList");
     const data = {
-        latitude: parseFloat(latitude),
-        longitude: parseFloat(longitude),
-        radius: parseInt(radius),
-        yearStart: parseInt(yearStart),
-        yearEnd: parseInt(yearEnd),
-        stations: stations ? parseInt(stations) : -1
+        latitude: parseFloat(document.getElementById("latitude").value),
+        longitude: parseFloat(document.getElementById("longitude").value),
+        radius: parseInt(document.getElementById("radius").value),
+        yearStart: parseInt(document.getElementById("yearStart").value),
+        yearEnd: parseInt(document.getElementById("yearEnd").value),
+        stations: document.getElementById("stationsInput").value ? parseInt(document.getElementById("stationsInput").value) : -1
     };
-    if (isNaN(parseFloat(latitude)) || isNaN(parseFloat(longitude))) {
+
+    if (isNaN(data.latitude) || isNaN(data.longitude)) {
         return;
     }
     try {
@@ -26,17 +20,18 @@ export async function getStations() {
         const result = await response.json();
         let titleSeason = ["Year", "Annual Average Tmin", "Annual Average Tmax", "Spring Tmin", "Spring Tmax",
             "Summer Tmin", "Summer Tmax", "Autumn Tmin", "Autumn Tmax", "Winter Tmin", "Winter Tmax"];
-        if (latitude < 0) {
+        if (data.latitude < 0) {
             titleSeason = ["Year", "Annual Average Tmin", "Annual Average Tmax", "Autumn Tmin", "Autumn Tmax",
                 "Winter Tmin", "Winter Tmax", "Spring Tmin", "Spring Tmax", "Summer Tmin", "Summer Tmax"];
         }
+        let stationList = document.querySelector("#stationList");
         if (result.length > 0) {
-            statioList.classList.remove("d-none");
-            createList(result, yearStart, yearEnd, titleSeason);
+            stationList.classList.remove("d-none");
+            createList(result, data.yearStart, data.yearEnd, titleSeason);
             addWeatherStations(result);
         } else {
             alert("No stations found. Please try again.");
-            statioList.classList.add("d-none");
+            stationList.classList.add("d-none");
         }
     } catch (error) {
         console.error("Fehler beim Senden der Daten:", error);
@@ -44,13 +39,10 @@ export async function getStations() {
 }
 
 export async function getStationData(stationID) {
-    const yearStart = document.getElementById("yearStart").value;
-    const yearEnd = document.getElementById("yearEnd").value;
-    const latitude = document.getElementById("latitude").value;
     const data = {
         stationName: stationID,
-        yearStart: parseInt(yearStart),
-        yearEnd: parseInt(yearEnd)
+        yearStart: parseInt(document.getElementById("yearStart").value),
+        yearEnd: parseInt(document.getElementById("yearEnd").value)
     };
     try {
         const response = await fetch("http://localhost:8000/get_weather_data", {
@@ -62,12 +54,12 @@ export async function getStationData(stationID) {
 
         let titleSeason = ["Year", "Annual Average Tmin", "Annual Average Tmax", "Spring Tmin", "Spring Tmax",
             "Summer Tmin", "Summer Tmax", "Autumn Tmin", "Autumn Tmax", "Winter Tmin", "Winter Tmax"];
-        if (latitude < 0) {
+        if (parseFloat(document.getElementById("latitude").value) < 0) {
             titleSeason = ["Year", "Annual Average Tmin", "Annual Average Tmax", "Autumn Tmin", "Autumn Tmax",
                 "Winter Tmin", "Winter Tmax", "Spring Tmin", "Spring Tmax", "Summer Tmin", "Summer Tmax"];
         }
         fillTable(result, stationID);
-        createChart(result, titleSeason, stationID, latitude);
+        createChart(result, titleSeason, stationID, document.getElementById("latitude").value);
     } catch (error) {
         console.error("Fehler beim Senden der Daten:", error);
     }
