@@ -4,5 +4,5 @@ COPY ./requirements.txt /app/requirements.txt
 WORKDIR /app
 RUN pip install -r requirements.txt
 COPY . /app
-#RUN npm install
+RUN npm install
 CMD ["python", "./src/app.py"]
