@@ -1,4 +1,4 @@
-export async function getStations() {
+async function getStations() {
     const latitude = document.getElementById("latitude").value;
     const longitude = document.getElementById("longitude").value;
     const radius = document.getElementById("radius").value;
@@ -43,7 +43,7 @@ export async function getStations() {
     }
 }
 
-export async function getStationData(stationID) {
+async function getStationData(stationID) {
     const yearStart = document.getElementById("yearStart").value;
     const yearEnd = document.getElementById("yearEnd").value;
     const latitude = document.getElementById("latitude").value;

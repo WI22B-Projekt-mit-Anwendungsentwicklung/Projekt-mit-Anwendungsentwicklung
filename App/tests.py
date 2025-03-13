@@ -1,9 +1,9 @@
 import pytest
 from flask import Flask
-from data_services import haversine, get_stations_in_radius, get_datapoints_for_station, find_stations_within_radius, save_data_to_db
-from datapoint import DataPoint, extract_average_value, download_and_create_datapoints, download_and_create_datapoints_local
-from routes import init_routes
-from station import Station, load_stations_from_url
+from App.src.data_services import haversine, get_stations_in_radius, get_datapoints_for_station, find_stations_within_radius, save_data_to_db
+from App.src.datapoint import DataPoint, extract_average_value, download_and_create_datapoints, download_and_create_datapoints_local
+from App.src.routes import init_routes
+from App.src.station import Station, load_stations_from_url
 from unittest.mock import patch, MagicMock
 from mysql.connector import pooling
 from unittest import mock

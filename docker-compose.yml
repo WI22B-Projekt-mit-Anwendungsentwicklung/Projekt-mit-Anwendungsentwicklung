@@ -1,11 +1,12 @@
 services:
   flask:
-    image: ghcr.io/wi22b-projekt-mit-anwendungsentwicklung/windy-weasel:latest
+    #image: ghcr.io/wi22b-projekt-mit-anwendungsentwicklung/windy-weasel:latest
+    build: ./App/
     container_name: windy-weasel
 #    volumes:
 #      - /Users/lukasschick/Documents/ghcnd_all:/data
 #      - /path/to/local/ghcn_all:/data
-    command: sh -c "python3 ./app.py"
+    command: sh -c "python3 ./src/app.py"
     ports:
       - "8000:8000"
     depends_on:
@@ -14,7 +15,8 @@ services:
     restart: on-failure
 
   mysql:
-    image: ghcr.io/wi22b-projekt-mit-anwendungsentwicklung/gusty-gorilla:latest
+    #image: ghcr.io/wi22b-projekt-mit-anwendungsentwicklung/gusty-gorilla:latest
+    build: ./MySQL
     container_name: gusty-gorilla
     restart: always
     environment:

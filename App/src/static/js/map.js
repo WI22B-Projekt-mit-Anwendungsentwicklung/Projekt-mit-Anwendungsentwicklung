@@ -3,7 +3,7 @@ let currentMarker = null;
 let currentCircle = null;
 let weatherStationMarkers = [];
 
-export async function initMap() {
+async function initMap() {
     map = new google.maps.Map(document.getElementById("map"), {
         zoom: 6,
         center: {lat: -53, lng: -70.967},
@@ -18,7 +18,7 @@ window.onload = function () {
     initMap();
 };
 
-export function addMarker() {
+function addMarker() {
     const latitude = parseFloat(document.getElementById("latitude").value);
     const longitude = parseFloat(document.getElementById("longitude").value);
     if (isNaN(latitude) || isNaN(longitude)) {
@@ -57,7 +57,7 @@ export function addMarker() {
     });
 }
 
-export function addRightClickListener() {
+function addRightClickListener() {
     map.addListener("rightclick", (event) => {
         handleRightClick(event.latLng);
     });
@@ -89,7 +89,7 @@ function clearWeatherStations() {
     weatherStationMarkers = [];
 }
 
-export function addWeatherStations(stations) {
+function addWeatherStations(stations) {
     clearWeatherStations();
     if (stations.length === 0) {
         console.warn("No stations available to display.");
