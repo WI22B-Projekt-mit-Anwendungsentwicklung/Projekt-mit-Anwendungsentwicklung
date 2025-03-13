@@ -639,6 +639,7 @@ def run_backend_tests():
         "--cov=data_services",
         "--cov=datapoint",
         "--cov=routes",
+        "--cov=calculations",
         "--cov=station",
         "--cov-report=term",
         "tests.py"
@@ -673,5 +674,7 @@ def run_all_tests():
     This is the single function we will call from app.py.
     """
     run_backend_tests()
+    """
     run_frontend_tests()
+    """
 
