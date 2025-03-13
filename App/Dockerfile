@@ -5,4 +5,4 @@ WORKDIR /app
 RUN pip install -r requirements.txt
 COPY . /app
 RUN npm install
-CMD ["python", "./src/app.py"]
+CMD ["python", "-m", "src.app"]

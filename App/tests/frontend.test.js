@@ -100,7 +100,7 @@ describe("Tests for map.js", () => {
     global.clearList = jest.fn();
     global.getStations = jest.fn();
 
-    mapModule = await import("./map.js");
+    mapModule = await import("../src/static/js/map.js");
     mapModule.initMap();
 
     mockLatLng = {
@@ -216,7 +216,7 @@ describe("Tests for map.js", () => {
 import {
   getStations,
   getStationData
-} from "./routes.js";
+} from "../src/static/js/routes.js";
 
 describe("Tests for routes.js", () => {
   let originalFetch;
@@ -434,7 +434,7 @@ function resetDOM() {
 let script;
 beforeAll(async () => {
   resetDOM();
-  script = await import("./script.js");
+  script = await import("../src/static/js/script.js");
 });
 
 describe("Tests for script.js logic functions", () => {

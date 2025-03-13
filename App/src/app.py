@@ -1,8 +1,12 @@
+import sys
+import os
+sys.path.append(os.path.join(os.path.dirname(__file__), '..'))
 from flask import Flask
 from flask_cors import CORS
 from routes import init_routes
 import data_services as ds
-from tests import run_all_tests
+from tests.backend_test import run_all_tests
+
 app = Flask(__name__)
 CORS(app)
 init_routes(app)

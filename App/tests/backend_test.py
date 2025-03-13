@@ -1,10 +1,10 @@
 import pytest
 from flask import Flask
-from App.src.data_services import get_stations_in_radius, get_datapoints_for_station, save_data_to_db
-from App.src.datapoint import DataPoint, extract_average_value, download_and_create_datapoints, download_and_create_datapoints_local
-from App.src.routes import init_routes
-from App.src.station import Station, load_stations_from_url
-from App.src.calculations import find_stations_within_radius, haversine
+from src.data_services import get_stations_in_radius, get_datapoints_for_station, save_data_to_db
+from src.datapoint import DataPoint, extract_average_value, download_and_create_datapoints, download_and_create_datapoints_local
+from src.routes import init_routes
+from src.station import Station, load_stations_from_url
+from src.calculations import find_stations_within_radius, haversine
 from unittest.mock import patch, MagicMock
 from mysql.connector import pooling
 from unittest import mock
@@ -14,9 +14,9 @@ from unittest import mock
 
 # ----------------- data_services.py -----------------
 
-@patch("data_services.connection_pool.get_connection")
-@patch("data_services.st.load_stations_from_url")
-@patch("data_services.dp.download_and_create_datapoints")
+@patch("src.data_services.connection_pool.get_connection")
+@patch("src.data_services.st.load_stations_from_url")
+@patch("src.data_services.dp.download_and_create_datapoints")
 def test_save_data_to_db(mock_download_datapoints, mock_load_stations, mock_get_connection):
     """Tests if save_data_to_db correctly initializes the database when empty"""
 
@@ -45,57 +45,13 @@ def test_save_data_to_db(mock_download_datapoints, mock_load_stations, mock_get_
     mock_cursor.execute.assert_called()  # At least one DB operation should have been performed
     mock_connection.commit.assert_called()  # Changes should be committed
 
-
-def test_haversine():
-    """Test haversine"""
-    assert haversine(0, 0, 0, 0) == 0
-    assert round(haversine(48.8566, 2.3522, 51.5074, -0.1278), 1) == 343.6
-
-def test_haversine_extreme_cases():
-    """Test haversine with real extreme cases"""
-
-    # Zero distance (same coordinates)
-    assert haversine(0, 0, 0, 0) == 0, "Error: Expected 0 km for two identical points"
-
-    # North Pole → South Pole (maximum possible distance on Earth)
-    assert round(haversine(90, 0, -90, 0), 1) == 20015.1, "Error: North Pole → South Pole should be 20015.1 km"
-
-    # Distance between two far-apart cities (New York → Sydney)
-    expected_ny_sydney = 15988
-    actual_ny_sydney = round(haversine(40.7128, -74.0060, -33.8688, 151.2093), 0)
-    assert abs(
-        actual_ny_sydney - expected_ny_sydney) <= 1, f"Error: New York → Sydney should be ~{expected_ny_sydney} km, got {actual_ny_sydney} km"
-
-    # Very close points (Berlin Central Station → Brandenburg Gate, ~1.1 km)
-    expected_berlin = 1.1
-    actual_berlin = round(haversine(52.5251, 13.3694, 52.5163, 13.3777), 1)
-    assert abs(
-        actual_berlin - expected_berlin) <= 1, f"Error: Berlin Central Station → Brandenburg Gate should be ~{expected_berlin} km, got {actual_berlin} km"
-
-    # Equator circumference test (two points on the same latitude, 180° apart)
-    assert round(haversine(0, 0, 0, 180), 0) == 20015, "Error: Equator 0° → 180° should be 20015 km"
-
-
-def test_find_stations_in_radius():
-    """Tests if the function correctly finds stations within the given radius"""
-
-    # Example stations with coordinates (Lat, Lon)
-    stations = [
-        ("ST001", "Near Station", 48.1, 8.1),  # Should be ~10 km
-        ("ST002", "Far Station", 49.5, 9.5),   # Should be ~150 km (outside radius)
-        ("ST003", "Close Station", 48.2, 8.2), # Should be ~5 km
-    ]
-
-    radius = 100  # Max. 100 km allowed
-    max_stations = 2
-
-    # Execute function
-    result = find_stations_within_radius(stations, 48.0, 8.0, radius, max_stations)
-
-    # Ensure all returned stations are within the radius
-    for station, distance in result:
-        assert distance <= radius, f"Error: Station {station[0]} is outside the radius ({distance} km)"
-
+def fake_haversine(lat1, lon1, lat2, lon2):
+    mapping = {
+        (48.0, 8.0): 10.5,
+        (48.1, 8.1): 5.0,
+        (49.0, 9.0): 50.0,
+    }
+    return mapping.get((lat2, lon2), 1000)
 
 def test_get_stations_in_radius_order(mocker):
     """Unit test for the `get_stations_in_radius` function using mocking."""
@@ -109,11 +65,11 @@ def test_get_stations_in_radius_order(mocker):
     ]
 
     # Mock database connection
-    mock_conn = mocker.patch("data_services.connection_pool.get_connection")
+    mock_conn = mocker.patch("src.data_services.connection_pool.get_connection")
     mock_conn.return_value.cursor.return_value.__enter__.return_value = mock_cursor
 
     # Mock haversine function to return specific distances for each station
-    mocker.patch("data_services.haversine", side_effect=[10.5, 5.0, 50.0])
+    mocker.patch("src.calculations.haversine", side_effect=fake_haversine)
 
     # Execute the function
     stations = get_stations_in_radius(48.0, 8.0, 100, 2000, 2020, 3)
@@ -220,7 +176,7 @@ def mock_db_cursor(mocker):
 def mock_extract_average_value():
     """Mock the extract_average_value function to return predefined values"""
 
-    with mock.patch("datapoint.extract_average_value", side_effect=[27.23, 21.02]):
+    with mock.patch("src.datapoint.extract_average_value", side_effect=[27.23, 21.02]):
         yield
 
 
@@ -373,11 +329,12 @@ def test_get_datapoints_for_station_real_db(db_cursor):
 
 def test_home():
     """Tests if the home route ('/') returns a 200 OK response."""
-    app = Flask(__name__)
-    init_routes(app)
-    client = app.test_client()
-    response = client.get('/')
-    assert response.status_code == 200
+    with patch("src.routes.render_template", return_value="dummy"):
+         app = Flask(__name__)
+         init_routes(app)
+         client = app.test_client()
+         response = client.get('/')
+         assert response.status_code == 200
 
 
 def test_receive_data(mocker):
@@ -387,7 +344,7 @@ def test_receive_data(mocker):
     client = app.test_client()
 
     # Mocking the get_stations_in_radius function to return predefined station data
-    mocker.patch("data_services.get_stations_in_radius", return_value=["Station1", "Station2"])
+    mocker.patch("src.data_services.get_stations_in_radius", return_value=["Station1", "Station2"])
 
     response = client.post('/submit', json={
         "latitude": 48.0,
@@ -418,7 +375,7 @@ def test_get_weather_data(client, mocker):
     """Tests whether weather data is correctly retrieved from the API and handles missing parameters"""
 
     # Mock the data_services function to return predefined data
-    mocker.patch("data_services.get_datapoints_for_station", return_value=[
+    mocker.patch("src.data_services.get_datapoints_for_station", return_value=[
         [("2020", -2.1)], [("2020", 15.3)],  # Annual Tmin & Tmax
         [("2020", 1.5)], [("2020", 10.8)],   # Spring Tmin & Tmax
         [("2020", 7.4)], [("2020", 22.1)],   # Summer Tmin & Tmax
@@ -464,6 +421,60 @@ def test_get_weather_data(client, mocker):
     response = client.post("/get_weather_data", json={})
     assert response.status_code == 400, f"Expected 400, got {response.status_code}"
     assert response.get_json() == {"message": "Fehlende Parameter"}
+
+
+# ----------------- calculations.py -----------------
+
+
+def test_haversine():
+    """Test haversine"""
+    assert haversine(0, 0, 0, 0) == 0
+    assert round(haversine(48.8566, 2.3522, 51.5074, -0.1278), 1) == 343.6
+
+def test_haversine_extreme_cases():
+    """Test haversine with real extreme cases"""
+
+    # Zero distance (same coordinates)
+    assert haversine(0, 0, 0, 0) == 0, "Error: Expected 0 km for two identical points"
+
+    # North Pole → South Pole (maximum possible distance on Earth)
+    assert round(haversine(90, 0, -90, 0), 1) == 20015.1, "Error: North Pole → South Pole should be 20015.1 km"
+
+    # Distance between two far-apart cities (New York → Sydney)
+    expected_ny_sydney = 15988
+    actual_ny_sydney = round(haversine(40.7128, -74.0060, -33.8688, 151.2093), 0)
+    assert abs(
+        actual_ny_sydney - expected_ny_sydney) <= 1, f"Error: New York → Sydney should be ~{expected_ny_sydney} km, got {actual_ny_sydney} km"
+
+    # Very close points (Berlin Central Station → Brandenburg Gate, ~1.1 km)
+    expected_berlin = 1.1
+    actual_berlin = round(haversine(52.5251, 13.3694, 52.5163, 13.3777), 1)
+    assert abs(
+        actual_berlin - expected_berlin) <= 1, f"Error: Berlin Central Station → Brandenburg Gate should be ~{expected_berlin} km, got {actual_berlin} km"
+
+    # Equator circumference test (two points on the same latitude, 180° apart)
+    assert round(haversine(0, 0, 0, 180), 0) == 20015, "Error: Equator 0° → 180° should be 20015 km"
+
+
+def test_find_stations_in_radius():
+    """Tests if the function correctly finds stations within the given radius"""
+
+    # Example stations with coordinates (Lat, Lon)
+    stations = [
+        ("ST001", "Near Station", 48.1, 8.1),  # Should be ~10 km
+        ("ST002", "Far Station", 49.5, 9.5),   # Should be ~150 km (outside radius)
+        ("ST003", "Close Station", 48.2, 8.2), # Should be ~5 km
+    ]
+
+    radius = 100  # Max. 100 km allowed
+    max_stations = 2
+
+    # Execute function
+    result = find_stations_within_radius(stations, 48.0, 8.0, radius, max_stations)
+
+    # Ensure all returned stations are within the radius
+    for station, distance in result:
+        assert distance <= radius, f"Error: Station {station[0]} is outside the radius ({distance} km)"
 
 
 # ----------------- station.py -----------------
@@ -636,14 +647,15 @@ def run_backend_tests():
     print("Running Python backend tests with coverage...")
     pytest_args = [
         "-q",
-        "--cov=data_services",
-        "--cov=datapoint",
-        "--cov=routes",
-        "--cov=calculations",
-        "--cov=station",
+        "--cov=src.data_services",
+        "--cov=src.datapoint",
+        "--cov=src.routes",
+        "--cov=src.calculations",
+        "--cov=src.station",
         "--cov-report=term",
-        "tests.py"
+        "tests"
     ]
+
     exit_code = pytest.main(pytest_args)
     if exit_code != 0:
         print("\nPython tests failed! Exiting...")
@@ -673,8 +685,7 @@ def run_all_tests():
     Runs both backend and frontend tests in sequence.
     This is the single function we will call from app.py.
     """
-    run_backend_tests()
-    """
     run_frontend_tests()
-    """
+    run_backend_tests()
+
 
