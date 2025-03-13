@@ -1,7 +1,7 @@
-export let map;
-export let currentMarker = null;
-export let currentCircle = null;
-export let weatherStationMarkers = [];
+let map;
+let currentMarker = null;
+let currentCircle = null;
+let weatherStationMarkers = [];
 
 export async function initMap() {
     map = new google.maps.Map(document.getElementById("map"), {
@@ -14,7 +14,9 @@ export async function initMap() {
     addRightClickListener();
 }
 
-window.onload = initMap;
+window.onload = function () {
+    initMap();
+};
 
 export function addMarker() {
     const latitude = parseFloat(document.getElementById("latitude").value);
@@ -29,6 +31,7 @@ export function addMarker() {
     if (currentCircle) {
         currentCircle.setMap(null);
     }
+    let circleRadius = parseFloat(document.getElementById("radius").value) * 1000;
     const position = {lat: latitude, lng: longitude};
     currentMarker = new google.maps.marker.AdvancedMarkerElement({
         map,
@@ -44,7 +47,7 @@ export function addMarker() {
         fillOpacity: 0.275,
         map: map,
         center: position,
-        radius: parseFloat(document.getElementById("radius").value) * 1000,
+        radius: circleRadius,
         clickable: true
     });
     map.setCenter(position);
@@ -81,7 +84,7 @@ function createCustomMarker(color = "#D32F2F") {
     return markerDiv;
 }
 
-export function clearWeatherStations() {
+function clearWeatherStations() {
     weatherStationMarkers.forEach(marker => marker.map = null);
     weatherStationMarkers = [];
 }
@@ -93,7 +96,11 @@ export function addWeatherStations(stations) {
         return;
     }
     stations.forEach(station => {
-        const position = {lat: station[0][2], lng: station[0][3]};
+        const stationId = station[0][0];
+        const name = station[0][1];
+        const lat = station[0][2];
+        const lng = station[0][3];
+        const position = {lat, lng};
         const markerDiv = document.createElement("div");
         markerDiv.classList.add("custom-marker");
         markerDiv.innerHTML = `
@@ -103,7 +110,7 @@ export function addWeatherStations(stations) {
             </svg>`;
         const tooltip = document.createElement("div");
         tooltip.classList.add("custom-tooltip");
-        tooltip.innerText = station[0][1];
+        tooltip.innerText = name;
         markerDiv.appendChild(tooltip);
         const marker = new google.maps.marker.AdvancedMarkerElement({
             map,
@@ -112,7 +119,7 @@ export function addWeatherStations(stations) {
             gmpClickable: true,
         });
         marker.addListener("gmp-click", () => {
-            scrollToStation(station[0][0]);
+            scrollToStation(stationId);
         });
         weatherStationMarkers.push(marker);
     });
