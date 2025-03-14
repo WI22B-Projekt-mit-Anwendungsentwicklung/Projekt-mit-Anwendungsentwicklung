@@ -125,6 +125,12 @@ function addWeatherStations(stations) {
     });
 }
 
+/**
+ * =========================================================
+ * GLOBAL FUNCTIONS FOR TESTING
+ * =========================================================
+ */
+
 global.initMap = initMap;
 global.addMarker = addMarker;
 global.addRightClickListener = addRightClickListener;

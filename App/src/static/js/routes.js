@@ -73,5 +73,11 @@ async function getStationData(stationID) {
     }
 }
 
+/**
+ * =========================================================
+ * GLOBAL FUNCTIONS FOR TESTING
+ * =========================================================
+ */
+
 global.getStations = getStations;
 global.getStationData = getStationData;

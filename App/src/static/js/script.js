@@ -321,6 +321,12 @@ function scrollToStation(stationID) {
     }
 }
 
+/**
+ * =========================================================
+ * GLOBAL FUNCTIONS FOR TESTING
+ * =========================================================
+ */
+
 global.validateInput = validateInput;
 global.clearList = clearList;
 global.createList = createList;

@@ -5,7 +5,7 @@ from flask import Flask
 from flask_cors import CORS
 from routes import init_routes
 import data_services as ds
-from tests.backend_test import run_all_tests
+from tests.run_tests import run_all_tests
 
 app = Flask(__name__)
 CORS(app)
