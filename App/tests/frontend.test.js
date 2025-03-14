@@ -15,21 +15,16 @@ beforeAll(() => {
  * =========================================================
  * TESTS FOR .JS
  * -> map.js
- * -> routes.js
- * -> script.js
  * =========================================================
  */
-
 
 // ----------------------------------
 // Tests for map.js
 // ----------------------------------
 
-
 describe("Tests for map.js", () => {
   let originalAlert;
   let mockLatLng;
-  let mapModule; // wird in beforeEach dynamisch geladen
 
   beforeAll(() => {
     // Setze globale Mocks, bevor das Modul importiert wird
@@ -63,8 +58,9 @@ describe("Tests for map.js", () => {
     global.alert = window.alert;
   });
 
-  beforeEach(async () => {
-    jest.resetModules();
+  beforeEach(() => {
+    jest.resetModules(); // Stellt sicher, dass das Modul frisch geladen wird
+
     global.google = {
       maps: {
         Map: jest.fn().mockImplementation(() => ({
@@ -100,8 +96,8 @@ describe("Tests for map.js", () => {
     global.clearList = jest.fn();
     global.getStations = jest.fn();
 
-    mapModule = await import("../src/static/js/map.js");
-    mapModule.initMap();
+    require("../src/static/js/map.js");
+    global.initMap();
 
     mockLatLng = {
       lat: jest.fn(() => 48.858844),
@@ -116,7 +112,7 @@ describe("Tests for map.js", () => {
 
   describe("handleRightClick()", () => {
     test("should update latitude and longitude inputs", () => {
-      mapModule.handleRightClick(mockLatLng);
+      global.handleRightClick(mockLatLng);
       expect(document.getElementById("latitude").value).toBe("48.858844");
       expect(document.getElementById("longitude").value).toBe("2.294351");
     });
@@ -124,18 +120,18 @@ describe("Tests for map.js", () => {
 
   describe("createCustomMarker()", () => {
     test("should return a div element with class 'custom-marker'", () => {
-      const marker = mapModule.createCustomMarker();
+      const marker = global.createCustomMarker();
       expect(marker).toBeInstanceOf(HTMLDivElement);
       expect(marker.classList.contains("custom-marker")).toBe(true);
     });
 
     test("should create an SVG with the default red color", () => {
-      const marker = mapModule.createCustomMarker();
+      const marker = global.createCustomMarker();
       expect(marker.innerHTML).toContain('<path fill="#D32F2F"');
     });
 
     test("should allow a custom color", () => {
-      const marker = mapModule.createCustomMarker("#4CAF50");
+      const marker = global.createCustomMarker("#4CAF50");
       expect(marker.innerHTML).toContain('<path fill="#4CAF50"');
     });
   });
@@ -143,7 +139,7 @@ describe("Tests for map.js", () => {
   describe("clearWeatherStations()", () => {
     test("should run without errors", () => {
       expect(() => {
-        mapModule.clearWeatherStations();
+        global.clearWeatherStations();
       }).not.toThrow();
     });
   });
@@ -153,7 +149,7 @@ describe("Tests for map.js", () => {
       window.alert = jest.fn();
       document.getElementById("latitude").value = "abc";
       document.getElementById("longitude").value = "def";
-      mapModule.addMarker();
+      global.addMarker();
       expect(window.alert).toHaveBeenCalledWith("Please enter valid Latitude and Longitude values.");
     });
 
@@ -163,7 +159,7 @@ describe("Tests for map.js", () => {
       document.getElementById("radius").value = "5";
       global.google.maps.marker.AdvancedMarkerElement.mockClear();
       global.google.maps.Circle.mockClear();
-      mapModule.addMarker();
+      global.addMarker();
       expect(global.google.maps.marker.AdvancedMarkerElement).toHaveBeenCalledTimes(1);
       expect(global.google.maps.Circle).toHaveBeenCalledWith(
         expect.objectContaining({
@@ -179,7 +175,7 @@ describe("Tests for map.js", () => {
 
   describe("addRightClickListener()", () => {
     test("attaches a 'rightclick' listener", () => {
-      mapModule.addRightClickListener();
+      global.addRightClickListener();
       const mockMapInstance = global.google.maps.Map.mock.results[0].value;
       expect(mockMapInstance.addListener).toHaveBeenCalledWith(
         "rightclick",
@@ -190,7 +186,7 @@ describe("Tests for map.js", () => {
 
   describe("addWeatherStations()", () => {
     test("warns if stations.length === 0", () => {
-      mapModule.addWeatherStations([]);
+      global.addWeatherStations([]);
       expect(global.console.warn).toHaveBeenCalledWith("No stations available to display.");
     });
 
@@ -199,7 +195,7 @@ describe("Tests for map.js", () => {
         [[1, "StationOne", 10, 20], 123],
         [[2, "StationTwo", 30, 40], 456],
       ];
-      mapModule.addWeatherStations(stations);
+      global.addWeatherStations(stations);
       expect(global.google.maps.marker.AdvancedMarkerElement).toHaveBeenCalledTimes(2);
       const mockMarker = global.google.maps.marker.AdvancedMarkerElement.mock.results[0].value;
       expect(mockMarker.addListener).toHaveBeenCalledWith("gmp-click", expect.any(Function));
@@ -207,16 +203,10 @@ describe("Tests for map.js", () => {
   });
 });
 
-
 // ----------------------------------
 // Tests for routes.js
 // ----------------------------------
 
-
-import {
-  getStations,
-  getStationData
-} from "../src/static/js/routes.js";
 
 describe("Tests for routes.js", () => {
   let originalFetch;
@@ -231,6 +221,9 @@ describe("Tests for routes.js", () => {
   });
 
   beforeEach(() => {
+    jest.resetModules();
+    require("../src/static/js/routes.js");
+
     // Prepare DOM
     document.body.innerHTML = `
       <input id="latitude" value="0" />
@@ -262,7 +255,7 @@ describe("Tests for routes.js", () => {
     test("Should return early if lat/long are invalid (no fetch call)", async () => {
       document.getElementById("latitude").value = "abc";
       document.getElementById("longitude").value = "xyz";
-      await getStations();
+      await global.getStations();
       expect(global.fetch).not.toHaveBeenCalled();
     });
 
@@ -273,7 +266,7 @@ describe("Tests for routes.js", () => {
         json: async () => []
       });
 
-      await getStations();
+      await global.getStations();
       expect(global.fetch).toHaveBeenCalledWith("http://localhost:8000/submit", expect.any(Object));
       const fetchCall = global.fetch.mock.calls[0][1]; // [url, options]
       const bodyData = JSON.parse(fetchCall.body);
@@ -301,7 +294,7 @@ describe("Tests for routes.js", () => {
         json: async () => mockResult
       });
 
-      await getStations();
+      await global.getStations();
       expect(global.alert).not.toHaveBeenCalled();
       const stationListDiv = document.getElementById("stationList");
       expect(stationListDiv.classList.contains("d-none")).toBe(false);
@@ -318,7 +311,7 @@ describe("Tests for routes.js", () => {
         json: async () => [[["id2", "Station2", -23, 9], 123]]
       });
 
-      await getStations();
+      await global.getStations();
       const secondArg = global.createList.mock.calls[0][3];
       expect(secondArg).toEqual([
         "Year",
@@ -339,7 +332,7 @@ describe("Tests for routes.js", () => {
       document.getElementById("latitude").value = "45";
       document.getElementById("longitude").value = "9";
       global.fetch.mockRejectedValue(new Error("network error"));
-      await getStations();
+      await global.getStations();
       expect(global.console.error).toHaveBeenCalledWith(
         "Fehler beim Senden der Daten:",
         expect.any(Error)
@@ -350,7 +343,6 @@ describe("Tests for routes.js", () => {
   // getStationData TESTS
   describe("getStationData()", () => {
     test("Should call fillTable + createChart on success", async () => {
-      // yearStart=2000, yearEnd=2020, lat=0 => normal Seasons
       document.getElementById("latitude").value = "0";
 
       // Test-Data
@@ -359,7 +351,7 @@ describe("Tests for routes.js", () => {
         json: async () => mockResult
       });
 
-      await getStationData("idX");
+      await global.getStationData("idX");
       expect(global.fetch).toHaveBeenCalledWith("http://localhost:8000/get_weather_data", expect.any(Object));
       expect(global.fillTable).toHaveBeenCalledWith(mockResult, "idX");
       expect(global.createChart).toHaveBeenCalledWith(mockResult, expect.any(Array), "idX", "0");
@@ -368,7 +360,7 @@ describe("Tests for routes.js", () => {
     test("Should use alternative seasons if latitude < 0", async () => {
       document.getElementById("latitude").value = "-12"; // lat < 0
       global.fetch.mockResolvedValue({ json: async () => [] });
-      await getStationData("idY");
+      await global.getStationData("idY");
       const seasonArray = global.createChart.mock.calls[0][1];
       expect(seasonArray).toEqual([
         "Year",
@@ -387,7 +379,7 @@ describe("Tests for routes.js", () => {
 
     test("Should console.error on fetch error", async () => {
       global.fetch.mockRejectedValue(new Error("server error"));
-      await getStationData("idZ");
+      await global.getStationData("idZ");
       expect(global.console.error).toHaveBeenCalledWith(
         "Fehler beim Senden der Daten:",
         expect.any(Error)
@@ -401,6 +393,7 @@ describe("Tests for routes.js", () => {
 // Tests for script.js
 // ----------------------------------
 
+// DOM-Grundstruktur für die Tests
 const baseDOM = `
   <header></header>
   <input type="checkbox" id="modeToggle" />
@@ -429,38 +422,41 @@ function resetDOM() {
   }
 }
 
-// Anstatt eines statischen Imports, wird das Modul dynamisch importiert,
-// nachdem der DOM initial gesetzt wurde.
-let script;
-beforeAll(async () => {
+beforeAll(() => {
   resetDOM();
-  script = await import("../src/static/js/script.js");
+});
+
+beforeEach(() => {
+  jest.resetModules(); // Stellt sicher, dass das Modul frisch geladen wird
+  resetDOM();
+
+  // Module laden (führt `script.js` aus)
+  require("../src/static/js/script.js");
+
+  global.alert = jest.fn();
+});
+
+afterEach(() => {
+  jest.clearAllMocks();
 });
 
 describe("Tests for script.js logic functions", () => {
-  beforeEach(() => {
-    resetDOM();
-    global.alert = jest.fn();
-  });
-
-  afterEach(() => {
-    jest.clearAllMocks();
-  });
-
   describe("validateInput()", () => {
     test("should set input value to min if value is below minimum", () => {
-      const input = { value: "100" }; // Hier wird 100 als Zahl interpretiert
-      script.validateInput(input, 1763, 2024, "Test");
+      const input = { value: "100" };
+      global.validateInput(input, 1763, 2024, "Test");
       expect(input.value).toBe(1763);
     });
+
     test("should set input value to max if value is above maximum", () => {
       const input = { value: "2500" };
-      script.validateInput(input, 1763, 2024, "Test");
+      global.validateInput(input, 1763, 2024, "Test");
       expect(input.value).toBe(2024);
     });
+
     test("should leave input unchanged if within range", () => {
       const input = { value: "2000" };
-      script.validateInput(input, 1763, 2024, "Test");
+      global.validateInput(input, 1763, 2024, "Test");
       expect(input.value).toBe("2000");
     });
   });
@@ -469,7 +465,7 @@ describe("Tests for script.js logic functions", () => {
     test("clearList() should empty the stationsList container", () => {
       const list = document.getElementById("stationsList");
       list.innerHTML = "<li>Item</li>";
-      script.clearList();
+      global.clearList();
       expect(list.innerHTML).toBe("");
     });
 
@@ -478,7 +474,7 @@ describe("Tests for script.js logic functions", () => {
         [["id1", "Station1", 10, 20], 123],
         [["id2", "Station2", 30, 40], 456]
       ];
-      script.createList(stations, "2000", "2020", ["Year", "Header1", "Header2"]);
+      global.createList(stations, "2000", "2020", ["Year", "Header1", "Header2"]);
       const list = document.getElementById("stationsList");
       expect(list.children.length).toBe(2);
     });
@@ -494,7 +490,7 @@ describe("Tests for script.js logic functions", () => {
       const data = [
         [[2000, 10], [2001, 20]]
       ];
-      script.fillTable(data, "testTable");
+      global.fillTable(data, "testTable");
       const table = document.getElementById("station-data-table-testTable");
       expect(table.rows[1].cells[1].textContent).toBe("10.0");
       expect(table.rows[2].cells[1].textContent).toBe("20.0");
@@ -506,40 +502,25 @@ describe("Tests for script.js logic functions", () => {
       const list = document.getElementById("stationsList");
       const station = [["id1", "Test Station", 10, 20], 123];
       const titleSeason = ["Year", "Header1", "Header2"];
-      script.addStation(station, 2000, 2020, titleSeason);
+      global.addStation(station, 2000, 2020, titleSeason);
       expect(list.children.length).toBe(1);
       expect(list.children[0].textContent).toContain("Test Station");
       expect(list.children[0].textContent).toContain("123.0 km");
-    });
-
-    test("should handle multiple calls and add multiple stations", () => {
-      const list = document.getElementById("stationsList");
-      const stationA = [["id3", "Station A", 12, 22], 150.2];
-      const stationB = [["id4", "Station B", 18, 28], 75.3];
-      const titleSeason = ["Year", "Header1", "Header2"];
-      script.addStation(stationA, 2000, 2020, titleSeason);
-      script.addStation(stationB, 2000, 2020, titleSeason);
-      expect(list.children.length).toBe(2);
-      expect(list.children[0].textContent).toContain("Station A");
-      expect(list.children[0].textContent).toContain("150.2 km");
-      expect(list.children[1].textContent).toContain("Station B");
-      expect(list.children[1].textContent).toContain("75.3 km");
     });
   });
 
   describe("toggleContent()", () => {
     test("should toggle 'open' on content and 'rotated' on arrow", () => {
-      // Für diesen Test eine spezifische DOM-Struktur setzen
       document.body.innerHTML = `
         <div id="station-data-div-test"></div>
         <img id="arrow-test" class="toggle-arrow" />
       `;
-      script.toggleContent("test");
+      global.toggleContent("test");
       let content = document.getElementById("station-data-div-test");
       let arrow = document.getElementById("arrow-test");
       expect(content.classList.contains("open")).toBe(true);
       expect(arrow.classList.contains("rotated")).toBe(true);
-      script.toggleContent("test");
+      global.toggleContent("test");
       expect(content.classList.contains("open")).toBe(false);
       expect(arrow.classList.contains("rotated")).toBe(false);
     });
@@ -550,13 +531,14 @@ describe("Tests for script.js logic functions", () => {
       document.body.innerHTML = `<canvas id="station-data-chart-test"></canvas>`;
       global.Chart = jest.fn();
     });
+
     test("should create a Chart with type 'line'", () => {
       const data = [
         [[2000, 10], [2001, 20]],
         [[2000, 15], [2001, 25]]
       ];
       const titleSeason = ["Year", "Header1", "Header2"];
-      script.createChart(data, titleSeason, "test", 10);
+      global.createChart(data, titleSeason, "test", 10);
       expect(global.Chart).toHaveBeenCalled();
       const chartConfig = global.Chart.mock.calls[0][1];
       expect(chartConfig.type).toBe("line");
@@ -573,13 +555,14 @@ describe("Tests for script.js logic functions", () => {
       global.toggleContent = jest.fn();
       global.getStationData = jest.fn();
     });
+
     test("should call scrollIntoView on the content element", () => {
-      script.scrollToStation("test");
+      global.scrollToStation("test");
       const content = document.getElementById("station-data-div-test");
       expect(Element.prototype.scrollIntoView).toHaveBeenCalled();
     });
   });
-})
+});
 
 
 

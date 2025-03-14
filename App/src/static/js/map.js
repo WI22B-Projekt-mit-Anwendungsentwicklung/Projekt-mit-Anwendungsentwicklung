@@ -3,7 +3,7 @@ let currentMarker = null;
 let currentCircle = null;
 let weatherStationMarkers = [];
 
-export async function initMap() {
+async function initMap() {
     map = new google.maps.Map(document.getElementById("map"), {
         zoom: 6,
         center: {lat: -53, lng: -70.967},
@@ -18,7 +18,7 @@ window.onload = function () {
     initMap();
 };
 
-export function addMarker() {
+function addMarker() {
     const latitude = parseFloat(document.getElementById("latitude").value);
     const longitude = parseFloat(document.getElementById("longitude").value);
     if (isNaN(latitude) || isNaN(longitude)) {
@@ -57,13 +57,13 @@ export function addMarker() {
     });
 }
 
-export function addRightClickListener() {
+function addRightClickListener() {
     map.addListener("rightclick", (event) => {
         handleRightClick(event.latLng);
     });
 }
 
-export function handleRightClick(latLng) {
+function handleRightClick(latLng) {
     document.getElementById("latitude").value = latLng.lat();
     document.getElementById("longitude").value = latLng.lng();
 
@@ -73,7 +73,7 @@ export function handleRightClick(latLng) {
     getStations();
 }
 
-export function createCustomMarker(color = "#D32F2F") {
+function createCustomMarker(color = "#D32F2F") {
     const markerDiv = document.createElement("div");
     markerDiv.classList.add("custom-marker");
     markerDiv.innerHTML = `
@@ -84,12 +84,12 @@ export function createCustomMarker(color = "#D32F2F") {
     return markerDiv;
 }
 
-export function clearWeatherStations() {
+function clearWeatherStations() {
     weatherStationMarkers.forEach(marker => marker.map = null);
     weatherStationMarkers = [];
 }
 
-export function addWeatherStations(stations) {
+function addWeatherStations(stations) {
     clearWeatherStations();
     if (stations.length === 0) {
         console.warn("No stations available to display.");
@@ -124,3 +124,11 @@ export function addWeatherStations(stations) {
         weatherStationMarkers.push(marker);
     });
 }
+
+global.initMap = initMap;
+global.addMarker = addMarker;
+global.addRightClickListener = addRightClickListener;
+global.handleRightClick = handleRightClick;
+global.createCustomMarker = createCustomMarker;
+global.clearWeatherStations = clearWeatherStations;
+global.addWeatherStations = addWeatherStations;

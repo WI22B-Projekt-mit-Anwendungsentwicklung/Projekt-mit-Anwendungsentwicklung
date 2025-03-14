@@ -85,7 +85,7 @@ stationsInput.addEventListener("blur", function () {
     }
 });
 
-export function validateInput(input, min, max, message) {
+function validateInput(input, min, max, message) {
     let value = parseInt(input.value);
     if (isNaN(value)) {
         return;
@@ -111,7 +111,7 @@ stationsInput.addEventListener('input', function () {
     stationBoxes.forEach(b => b.classList.remove('selected'));
 });
 
-export function createList(stations, yearStart, yearEnd, titleSeason) {
+function createList(stations, yearStart, yearEnd, titleSeason) {
     clearList();
     if (stations.length !== 0) {
         stations.forEach(station => {
@@ -122,7 +122,7 @@ export function createList(stations, yearStart, yearEnd, titleSeason) {
     }
 }
 
-export function addStation(station, yearStart, yearEnd, titleSeason) {
+function addStation(station, yearStart, yearEnd, titleSeason) {
     let tableHeaderHTML = '<tr>' + titleSeason.map(header => `<th>${header}</th>`).join('') + '</tr>';
     let tableRowsHTML = '';
     for (let year = yearStart; year <= yearEnd; year++) {
@@ -169,12 +169,12 @@ export function addStation(station, yearStart, yearEnd, titleSeason) {
 }
 
 
-export function clearList() {
+function clearList() {
     document.getElementById("stationsList").innerHTML = "";
 }
 
 
-export function toggleContent(stationID) {
+function toggleContent(stationID) {
     let content = document.getElementById(`station-data-div-${stationID}`);
     let arrow = document.getElementById(`arrow-${stationID}`);
     content.classList.toggle('open');
@@ -182,7 +182,7 @@ export function toggleContent(stationID) {
 }
 
 
-export function fillTable(data, stationID) {
+function fillTable(data, stationID) {
     let table = document.getElementById(`station-data-table-${stationID}`);
     if (!table) return;
 
@@ -220,7 +220,7 @@ const predefinedColorsSouth = [
 const charts = {};
 
 
-export function createChart(data, titleSeason, stationID, latitude) {
+function createChart(data, titleSeason, stationID, latitude) {
     let predefinedColors = predefinedColorsNorth;
     if (latitude < 0){
         predefinedColors = predefinedColorsSouth;
@@ -310,7 +310,7 @@ export function createChart(data, titleSeason, stationID, latitude) {
     });
 }
 
-export function scrollToStation(stationID) {
+function scrollToStation(stationID) {
     let content = document.getElementById(`station-data-div-${stationID}`);
     if (content) {
         if (!content.classList.contains("open")) {
@@ -321,5 +321,13 @@ export function scrollToStation(stationID) {
     }
 }
 
+global.validateInput = validateInput;
+global.clearList = clearList;
+global.createList = createList;
+global.fillTable = fillTable;
+global.addStation = addStation;
+global.toggleContent = toggleContent;
+global.createChart = createChart;
+global.scrollToStation = scrollToStation;
 
 
