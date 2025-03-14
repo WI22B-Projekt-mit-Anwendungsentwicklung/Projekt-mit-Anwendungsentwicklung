@@ -94,7 +94,7 @@ def get_stations_in_radius(latitude, longitude, radius, first_year, last_year, m
     :param last_year: Last year of the desired time period.
     :param max_stations: Maximum number of stations to return.
 
-    :return: List of stations with their distances within the radius (e.g., [(station, distance)]).
+    :return: List of stations with their distances within the radius.
     """
 
     connection = connection_pool.get_connection()
