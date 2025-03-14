@@ -50,9 +50,9 @@ def fake_haversine(lat1, lon1, lat2, lon2):
         (49.0, 9.0): 50.0,
     }
     return mapping.get((lat2, lon2), 1000)
-"""
+
 def test_get_stations_in_radius_order(mocker):
-    'Unit test for the get_stations_in_radius function using mocking.'
+    """Unit test for the `get_stations_in_radius` function using mocking."""
     mock_cursor = mocker.Mock()
     mock_cursor.fetchall.return_value = [
         ("ST123", "Station A", 48.0, 8.0),
@@ -60,11 +60,10 @@ def test_get_stations_in_radius_order(mocker):
         ("ST789", "Station C", 49.0, 9.0),
     ]
     mock_conn = mocker.patch("src.data_services.connection_pool.get_connection")
-    mock_conn.return_value.cursor.return_value.enter.return_value = mock_cursor
+    mock_conn.return_value.cursor.return_value.__enter__.return_value = mock_cursor
     mocker.patch("src.calculations.haversine", side_effect=fake_haversine)
     stations = get_stations_in_radius(48.0, 8.0, 100, 2000, 2020, 3)
     assert len(stations) == 2, f"Error: Expected 2 stations, got {len(stations)}"
     expected_order = ["ST123", "ST456"]
     actual_order = [station[0][0] for station in stations]
     assert actual_order == expected_order, f"Error: Expected order {expected_order}, got {actual_order}"
-"""
