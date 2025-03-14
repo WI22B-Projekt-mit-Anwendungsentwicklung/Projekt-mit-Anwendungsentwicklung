@@ -24,15 +24,18 @@ def test_home():
          response = client.get('/')
          assert response.status_code == 200
 
-"""
 def test_receive_data(mocker):
-    'Tests if the '/submit' endpoint correctly processes a POST request and returns the expected station data.'
+    """Tests if the '/submit' endpoint correctly processes a POST request and returns the expected station data."""
     app = Flask(__name__)
     init_routes(app)
     client = app.test_client()
 
-    # Mocking the get_stations_in_radius function to return predefined station data
-    mocker.patch("src.data_services.get_stations_in_radius", return_value=["Station1", "Station2"])
+    expected_response = [
+        [['GME00132346', 'BUCHENBACH', 47.9631, 7.9989], 4.103909569266784],
+        [['GME00122458', 'FREIBURG', 48.0242, 7.8353], 12.543486701908696]
+    ]
+
+    mocked_function = mocker.patch("src.data_services.get_stations_in_radius", return_value=expected_response)
 
     response = client.post('/submit', json={
         "latitude": 48.0,
@@ -40,13 +43,11 @@ def test_receive_data(mocker):
         "radius": 100,
         "yearStart": 2000,
         "yearEnd": 2020,
-        "stations": []
+        "stations": 2
     })
 
-    # Check if the response status is 200 OK
     assert response.status_code == 200
-    # Check if the returned JSON matches the mocked station data
-    assert response.get_json() == ["Station1", "Station2"]
+    assert response.get_json() == expected_response
 
 
 @pytest.fixture
@@ -60,7 +61,7 @@ def client():
         yield client
 
 def test_get_weather_data(client, mocker):
-    'Tests whether weather data is correctly retrieved from the API and handles missing parameters'
+    """Tests whether weather data is correctly retrieved from the API and handles missing parameters"""
 
     # Mock the data_services function to return predefined data
     mocker.patch("src.data_services.get_datapoints_for_station", return_value=[
@@ -73,7 +74,7 @@ def test_get_weather_data(client, mocker):
 
     # Test valid request
     response = client.post("/get_weather_data", json={
-        "stationName": "ST123",
+        "stationName": "GME00122458",
         "yearStart": 2020,
         "yearEnd": 2020
     })
@@ -91,7 +92,7 @@ def test_get_weather_data(client, mocker):
 
     # Test missing `yearStart`
     response = client.post("/get_weather_data", json={
-        "stationName": "ST123",
+        "stationName": "GME00122458",
         "yearEnd": 2020
     })
     assert response.status_code == 400, f"Expected 400, got {response.status_code}"
@@ -99,7 +100,7 @@ def test_get_weather_data(client, mocker):
 
     # Test missing `yearEnd`
     response = client.post("/get_weather_data", json={
-        "stationName": "ST123",
+        "stationName": "GME00122458",
         "yearStart": 2020
     })
     assert response.status_code == 400, f"Expected 400, got {response.status_code}"
@@ -109,4 +110,3 @@ def test_get_weather_data(client, mocker):
     response = client.post("/get_weather_data", json={})
     assert response.status_code == 400, f"Expected 400, got {response.status_code}"
     assert response.get_json() == {"message": "Fehlende Parameter"}
-"""
