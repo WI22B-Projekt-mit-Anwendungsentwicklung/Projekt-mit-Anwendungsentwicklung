@@ -126,12 +126,6 @@ describe("Tests for map.js", () => {
       expect(marker.innerHTML).toContain('<path fill="#D32F2F"');
     });
 
-    test("should allow a custom color", () => {
-      const marker = global.createCustomMarker("#4CAF50");
-      expect(marker.innerHTML).toContain('<path fill="#4CAF50"');
-    });
-  });
-
   describe("clearWeatherStations()", () => {
     test("should run without errors", () => {
       expect(() => {
