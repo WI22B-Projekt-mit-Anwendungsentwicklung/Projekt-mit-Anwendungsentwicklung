@@ -125,6 +125,7 @@ describe("Tests for map.js", () => {
       const marker = global.createCustomMarker();
       expect(marker.innerHTML).toContain('<path fill="#D32F2F"');
     });
+  });
 
   describe("clearWeatherStations()", () => {
     test("should run without errors", () => {

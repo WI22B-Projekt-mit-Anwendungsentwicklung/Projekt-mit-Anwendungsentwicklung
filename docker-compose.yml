@@ -1,7 +1,6 @@
 services:
   flask:
-    #image: ghcr.io/wi22b-projekt-mit-anwendungsentwicklung/windy-weasel:latest
-    build: ./App/
+    image: ghcr.io/wi22b-projekt-mit-anwendungsentwicklung/windy-weasel:latest
     container_name: windy-weasel
 #    volumes:
 #      - /Users/lukasschick/Documents/ghcnd_all:/data
@@ -15,8 +14,7 @@ services:
     restart: on-failure
 
   mysql:
-    #image: ghcr.io/wi22b-projekt-mit-anwendungsentwicklung/gusty-gorilla:latest
-    build: ./MySQL
+    image: ghcr.io/wi22b-projekt-mit-anwendungsentwicklung/gusty-gorilla:latest
     container_name: gusty-gorilla
     restart: always
     environment:

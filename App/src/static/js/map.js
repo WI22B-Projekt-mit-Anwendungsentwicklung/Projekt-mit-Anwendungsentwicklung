@@ -131,10 +131,10 @@ function addWeatherStations(stations) {
  * =========================================================
  */
 
-global.initMap = initMap;
-global.addMarker = addMarker;
-global.addRightClickListener = addRightClickListener;
-global.handleRightClick = handleRightClick;
-global.createCustomMarker = createCustomMarker;
-global.clearWeatherStations = clearWeatherStations;
-global.addWeatherStations = addWeatherStations;
+window.initMap = initMap;
+window.addMarker = addMarker;
+window.addRightClickListener = addRightClickListener;
+window.handleRightClick = handleRightClick;
+window.createCustomMarker = createCustomMarker;
+window.clearWeatherStations = clearWeatherStations;
+window.addWeatherStations = addWeatherStations;

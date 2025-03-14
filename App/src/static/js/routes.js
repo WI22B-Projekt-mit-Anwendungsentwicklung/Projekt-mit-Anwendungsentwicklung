@@ -79,5 +79,5 @@ async function getStationData(stationID) {
  * =========================================================
  */
 
-global.getStations = getStations;
-global.getStationData = getStationData;
+window.getStations = getStations;
+window.getStationData = getStationData;

@@ -11,9 +11,8 @@ from src.datapoint import DataPoint, extract_average_value, download_and_create_
 from src.routes import init_routes
 from src.station import Station, load_stations_from_url
 from src.calculations import find_stations_within_radius, haversine
-from unittest.mock import patch, MagicMock
-from mysql.connector import pooling
-from unittest import mock
+from unittest.mock import patch
+
 
 def test_home():
     """Tests if the home route ('/') returns a 200 OK response."""
